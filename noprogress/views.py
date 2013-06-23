@@ -73,6 +73,17 @@ def log():
     })
 
 
+@app.route("/api/log/<int:id>", methods=["DELETE"])
+def unlog(id):
+    session = db.session()
+    session.query(Workout).filter(Workout.id == id).delete()
+    session.commit()
+
+    return flask.jsonify({
+        "status": "ok"
+    })
+
+
 @app.route("/dashboard")
 def dashboard():
     if g.identity is None:

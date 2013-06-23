@@ -7,6 +7,14 @@
         $interpolateProvider.endSymbol("%>");
     });
 
+    noprogress.directive("eatClick", function () {
+        return function(scope, element, attrs) {
+            $(element).click(function(event) {
+                event.preventDefault();
+            });
+        };
+    });
+
     noprogress.factory("api", function ($http, $rootScope) {
         var api = {
             lifts: ["squat", "overhead_press", "bench_press", "deadlift", "power_clean"],
@@ -36,6 +44,19 @@
                     method: "POST",
                     url: "/api/log",
                     data: {log: workout}
+                }).
+                    success(function (data, status, headers, config) {
+                        cont(null, data);
+                    }).
+                    error(function (err, status, headers, config) {
+                        cont(err, null);
+                    });
+            },
+
+            unlog: function unlog(id, cont) {
+                $http({
+                    method: "DELETE",
+                    url: "/api/log/" + encodeURIComponent(id)
                 }).
                     success(function (data, status, headers, config) {
                         cont(null, data);
@@ -405,7 +426,7 @@
         };
     });
 
-    noprogress.controller("WorkoutsCtrl", function ($scope, api) {
+    noprogress.controller("WorkoutsCtrl", function ($rootScope, $scope, api) {
         $scope.limit = 5;
         $scope.currentPage = 1;
 
@@ -422,6 +443,13 @@
         $scope.previousPage = function () {
             var page = Math.max($scope.currentPage - 1, 1);
             $scope.goToPage(page);
+        };
+
+        $scope.removeWorkout = function (id) {
+            api.unlog(id, function (err, data) {
+                if (err !== null) return;
+                $rootScope.$broadcast("workouts.updated");
+            });
         };
 
         $scope.refresh = function () {

@@ -40,20 +40,22 @@
             <div class="row" ng-controller="WorkoutsCtrl" ng-show="workouts.length > 0">
                 <div class="large-12 columns">
                     <ul class="pagination">
-                        <li class="arrow" ng-class="{unavailable: currentPage == 1}"><a href="#" ng-click="previousPage()">&laquo;</a></li>
-                        <li ng-repeat="page in pages" ng-class="{current: page == currentPage}"><a href="#" ng-click="goToPage(page)"><%= page %></a></li>
-                        <li class="arrow" ng-class="{unavailable: currentPage == totalPages}"><a href="#" ng-click="nextPage()">&raquo;</a></li>
+                        <li class="arrow" ng-class="{unavailable: currentPage == 1}"><a href="#" ng-click="previousPage()" eat-click>&laquo;</a></li>
+                        <li ng-repeat="page in pages" ng-class="{current: page == currentPage}"><a href="#" ng-click="goToPage(page)" eat-click><%= page %></a></li>
+                        <li class="arrow" ng-class="{unavailable: currentPage == totalPages}"><a href="#" ng-click="nextPage()" eat-click>&raquo;</a></li>
                     </ul>
 
                     <table class="workouts">
                         <thead>
                             <tr>
+                                <th width="10"></th>
                                 <th width="100">Date</th>
                                 <th width="150" ng-repeat="lift in api.lifts"><%= api.liftNames[lift] %></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr ng-repeat="workout in workouts">
+                                <td><a href="#" ng-click="removeWorkout(workout.id)" eat-click><i class="foundicon-remove"></i></a></td>
                                 <td><%=workout.date %></td>
                                 <td ng-repeat="lift in api.lifts" ng-bind-html-unsafe="workout.liftSetsMap[lift] | reprSets"></td>
                             </tr>
@@ -65,7 +67,7 @@
     </div>
 </div>
 
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.js"></script>
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="{{url_for('static', filename='app/main.js')}}"></script>
 {% endblock %}

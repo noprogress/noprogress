@@ -39,3 +39,4 @@ nosetests.xml
 
 VENV
 *.db
+.DS_Store
