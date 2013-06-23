@@ -257,7 +257,7 @@
                         .orient("left");
 
                     var line = d3.svg.line()
-                        .defined(function(d) { return d.onerm !== null; })
+                        .interpolate("basis")
                         .x(function(d) { return x(d.date); })
                         .y(function(d) { return y(d.onerm); });
 
@@ -275,12 +275,15 @@
                         var onerms = color.domain().map(function (name) {
                             return {
                                 name: name,
-                                values: workouts.map(function (d) {
-                                    return {
-                                        date: d.date,
-                                        onerm: d.liftSetsMap[name] ? onermCalc(d.liftSetsMap[name]) : null
-                                    };
-                                })
+                                values: workouts.reduce(function (acc, d) {
+                                    if (Object.prototype.hasOwnProperty.call(d.liftSetsMap, name)) {
+                                        acc.push({
+                                            date: d.date,
+                                            onerm: onermCalc(d.liftSetsMap[name])
+                                        });
+                                    }
+                                    return acc;
+                                }, [])
                             };
                         });
 
@@ -315,7 +318,7 @@
                                 .style("text-anchor", "end")
                                 .text("1RM (kg)");
 
-                        /*var onerm = svg.selectAll(".onerm")
+                        var onerm = svg.selectAll(".onerm")
                             .data(onerms)
                             .enter().append("g")
                                 .attr("class", "onerm");
@@ -323,7 +326,7 @@
                         onerm.append("path")
                             .attr("class", "line")
                             .attr("d", function(d) { return line(d.values); })
-                            .style("stroke", function(d) { return color(d.name); });*/
+                            .style("stroke", function(d) { return color(d.name); });
 
                         var points = svg.selectAll(".series")
                             .data(onerms)
@@ -332,7 +335,6 @@
                                 .selectAll(".point")
                                 .data(function (d) { return d.values; })
                                 .enter().append("svg:circle")
-                                    .filter(function (d) { return d.onerm !== null; })
                                     .attr("cx", function (d, i) { return x(d.date); })
                                     .attr("cy", function (d, i) { return y(d.onerm); })
                                     .attr("r", function (d, i) { return 2; });
