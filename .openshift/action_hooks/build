@@ -1,7 +1,7 @@
 export LIBRARY_PATH=$LD_LIBRARY_PATH
 pip install --use-mirrors -r $OPENSHIFT_REPO_DIR/requirements.txt
 
-if [ ! -e "$OPENSHIFT_DATA_DIR/UglifyJS/bin/uglifyjs" ]
+if [ ! -e "$OPENSHIFT_DATA_DIR/UglifyJS2/bin/uglifyjs" ]
 then
-    git clone https://github.com/mishoo/UglifyJS.git $OPENSHIFT_DATA_DIR/UglifyJS/bin/uglifyjs
+    git clone https://github.com/mishoo/UglifyJS2.git $OPENSHIFT_DATA_DIR/UglifyJS2
 fi
