@@ -422,8 +422,10 @@
     noprogress.controller("LogWorkoutCtrl", function ($rootScope, $scope, api) {
         $scope.doLog = function () {
             api.log($scope.log, function (err, data) {
+                if (err) return;
                 $rootScope.$broadcast("workouts.updated");
                 $scope.log = "";
+                $scope.goToPage(1);
             });
         };
     });
@@ -460,6 +462,11 @@
 
                 $scope.workouts = workouts;
                 $scope.totalPages = Math.ceil(data.total / $scope.limit);
+
+                if ($scope.currentPage > $scope.totalPages) {
+                    $scope.currentPage = $scope.totalPages;
+                    $scope.refresh();
+                }
 
                 $scope.pages = [];
 
