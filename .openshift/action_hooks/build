@@ -1,1 +1,2 @@
+export LIBRARY_PATH=$LD_LIBRARY_PATH
 pip install --use-mirrors -r $OPENSHIFT_REPO_DIR/requirements.txt
