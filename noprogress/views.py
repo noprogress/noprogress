@@ -44,27 +44,12 @@ def api_last():
 
 @app.route("/api/log", methods=["POST"])
 def log():
-    logs = flask.request.json.get("log", None)
+    session = db.session()
 
-    for log in logs.split("\n"):
-        try:
-            workout = slf.parse_workout(log)
-        except Exception:
-            flask.abort(400)
+    w = Workout.from_api(flask.request.json)
+    w.user = g.identity
 
-        session = db.session()
-        w = Workout(user=g.identity,
-                    date=datetime.datetime.strptime(workout["date"], "%Y-%m-%d").date(),
-                    comment=workout["comment"])
-
-        for i, lift in enumerate(workout["lifts"]):
-            l = Lift(workout=w, name=lift["name"].lower().replace(" ", "_"), order=i)
-            session.add(l)
-
-            for j, set in enumerate(lift["sets"]):
-                s = Set(lift=l, weight=set["weight"], reps=set["reps"], order=j)
-                session.add(s)
-
+    session.add(w)
     session.commit()
 
     return flask.jsonify({

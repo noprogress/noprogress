@@ -1,3 +1,4 @@
+import datetime
 import flask
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.sql.expression import asc
@@ -55,6 +56,7 @@ class User(db.Model, IdMixin):
 
         return db.session.query(lift).group_by(lift.name)
 
+
 @app.before_request
 def add_request_identity():
     flask.g.identity = User.current_identity()
@@ -73,7 +75,7 @@ class Workout(db.Model, IdMixin):
     __tablename__ = "workouts"
 
     date = db.Column(db.Date, nullable=False)
-    comment = db.Column(db.Text, nullable=False)
+    comment = db.Column(db.Text, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
     user = db.relationship("User", backref=db.backref("workouts",
@@ -88,6 +90,18 @@ class Workout(db.Model, IdMixin):
             "comment": self.comment,
             "lifts": [l.to_api() for l in self.lifts]
         }
+
+    @classmethod
+    def from_api(cls, payload):
+        w = cls(date=datetime.datetime.strptime(payload["date"], "%Y-%m-%d").date(),
+                comment=payload.get("comment", None))
+
+        for i, lift in enumerate(payload["lifts"]):
+            l = Lift.from_api(lift)
+            l.order = i
+            l.workout = w
+
+        return w
 
 
 class Lift(db.Model, IdMixin):
@@ -109,6 +123,17 @@ class Lift(db.Model, IdMixin):
             "sets": [s.to_api() for s in self.sets]
         }
 
+    @classmethod
+    def from_api(cls, payload):
+        l = cls(name=payload["name"])
+
+        for i, set in enumerate(payload["sets"]):
+            s = Set.from_api(set)
+            s.order = i
+            s.lift = l
+
+        return l
+
 
 class Set(db.Model, IdMixin):
     __tablename__ = "sets"
@@ -129,3 +154,7 @@ class Set(db.Model, IdMixin):
             "weight": self.weight,
             "reps": self.reps
         }
+
+    @classmethod
+    def from_api(cls, payload):
+        return cls(weight=payload["weight"], reps=payload["reps"])
