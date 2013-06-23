@@ -2,7 +2,6 @@ import flask
 import requests
 import json
 import datetime
-import math
 
 from flask import g
 
