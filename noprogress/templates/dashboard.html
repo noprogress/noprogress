@@ -71,8 +71,8 @@
                                         </div>
                                     </td>
                                     <td colspan="<%= maxSets - lift.sets.length + 1 %>">
-                                        <a href="#" ng-click="addSet(lift)" eat-click><i class="foundicon-plus"></i></a>
-                                        <a href="#" ng-click="removeSet(lift)" eat-click><i class="foundicon-minus"></i></a>
+                                        <a href="#" ng-click="addSet(lift)" eat-click><i class="foundicon-plus"></i></a><br/ >
+                                        <a href="#" ng-click="removeSet(lift)" eat-click ng-show="lift.sets.length > 0"><i class="foundicon-minus"></i></a>
                                     </td>
                                 </tr>
                                 <tr>
