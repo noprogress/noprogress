@@ -1,1 +1,1 @@
-NOPROGRESS_SETTINGS=production.ini uwsgi -s $OPENSHIFT_INTERNAL_IP:$OPENSHIFT_INTERNAL_PORT --socket-protocol http --pp $OPENSHIFT_REPO_DIR/wsgi --module application -d $OPENSHIFT_DIY_LOG_DIR/app.log --pidfile $OPENSHIFT_TMP_DIR/uwsgi.pid
+NOPROGRESS_SETTINGS=production.ini uwsgi -s $OPENSHIFT_INTERNAL_IP:$OPENSHIFT_INTERNAL_PORT --socket-protocol http --pp $OPENSHIFT_REPO_DIR/noprogress --module wsgi -d $OPENSHIFT_DIY_LOG_DIR/app.log --pidfile $OPENSHIFT_TMP_DIR/uwsgi.pid
