@@ -5,3 +5,8 @@ if [ ! -e "$OPENSHIFT_DATA_DIR/UglifyJS2/bin/uglifyjs" ]
 then
     git clone https://github.com/mishoo/UglifyJS2.git $OPENSHIFT_DATA_DIR/UglifyJS2
 fi
+
+if [ ! -e "$OPENSHIFT_DATA_DIR/clean-css/bin/cleancss" ]
+then
+    git clone https://github.com/GoalSmashers/clean-css.git $OPENSHIFT_DATA_DIR/clean-css
+fi

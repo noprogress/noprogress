@@ -6,4 +6,3 @@ psycopg2
 requests
 python-dateutil
 Flask-Assets
-cssutils

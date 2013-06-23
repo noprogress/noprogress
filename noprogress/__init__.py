@@ -15,11 +15,11 @@ assets = Environment(app)
 assets.register("js_all", Bundle("js/vendor/jquery.js", "js/foundation.min.js",
                                  "js/foundation-datepicker.js", "js/d3.v3.js", "js/angular.js",
                                  "app/swolparser.js", "app/main.js",
-                                 filters="rjsmin", output="gen/packed.js"))
+                                 filters="uglifyjs", output="gen/packed.js"))
 
 assets.register("css_all", Bundle("css/normalize.css", "css/general_foundicons.css",
                                   "css/foundation.css", "css/noprogress.css",
-                                  filters="cssutils", output="gen/packed.css"))
+                                  filters="cleancss", output="gen/packed.css"))
 
 if not app.debug:
     import logging
