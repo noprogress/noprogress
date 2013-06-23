@@ -10,7 +10,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="large-4 small-8 columns">
+        <div class="large-4 columns">
             <aside class="panel" ng-controller="StrStdCtrl">
                 <ul class="side-nav">
                     <li ng-repeat="lift in api.lifts" ng-hide="!last[lift]">
@@ -29,13 +29,28 @@
         </div>
 
         <div class="large-8 columns">
-            <form class="row collapse" ng-controller="LogWorkoutCtrl" ng-submit="doLog()">
-                <div class="small-11 columns">
+            <form class="panel" ng-controller="LogWorkoutCtrl" ng-submit="doLog()">
+                <div class="row">
+                    <div class="large-4 columns">
+                        <label for="date">Date</label>
+                        <input type="text" id="date" name="date">
+                    </div>
+                    <div class="large-8 columns">
+                        <label for="comment">Comment</label>
+                        <input type="text" id="comment" name="comment">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="large-12 columns text-right">
+                        <button class="button small" type="submit">Log Workout</button>
+                    </div>
+                </div>
+                <!--<div class="small-11 columns">
                     <textarea ng-model="log" placeholder="Example: today|squat@137.5x3+137.5x4,deadlift@42.5x5+42.5x5+42.5x4 # comment"></textarea>
                 </div>
                 <div class="small-1 columns">
                     <button class="prefix" type="submit">Log</button>
-                </div>
+                </div>-->
             </form>
             <div class="row" ng-controller="WorkoutsCtrl" ng-show="workouts.length > 0">
                 <div class="large-12 columns">
