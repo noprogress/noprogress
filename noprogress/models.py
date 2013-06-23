@@ -107,6 +107,16 @@ class Workout(db.Model, IdMixin):
 class Lift(db.Model, IdMixin):
     __tablename__ = "lifts"
 
+    SYNONYMS = {
+        "squats": "squat",
+        "deadlifts": "deadlift",
+        "bench": "bench_press",
+        "overhead": "overhead_press"
+    }
+
+    ACCEPTABLE_NAMES = {"squat", "deadlift", "bench_press", "overhead_press", "power_clean",
+                        "front_squat"}
+
     name = db.Column(db.String, nullable=False, index=True)
     order = db.Column(db.Integer, nullable=False)
 
@@ -125,7 +135,13 @@ class Lift(db.Model, IdMixin):
 
     @classmethod
     def from_api(cls, payload):
-        l = cls(name=payload["name"])
+        name = payload["name"].replace(" ", "_").lower()
+        name = cls.SYNONYMS.get(name, name)
+
+        if name not in cls.ACCEPTABLE_NAMES:
+            raise ValueError("{} not an acceptable lift".format(name))
+
+        l = cls(name=name)
 
         for i, set in enumerate(payload["sets"]):
             s = Set.from_api(set)
@@ -158,3 +174,4 @@ class Set(db.Model, IdMixin):
     @classmethod
     def from_api(cls, payload):
         return cls(weight=payload["weight"], reps=payload["reps"])
+

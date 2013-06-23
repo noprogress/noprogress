@@ -42,8 +42,24 @@ def api_last():
     return flask.jsonify({l.name: l.to_api()["sets"] for l in user.find_last()})
 
 
-@app.route("/api/log", methods=["POST"])
-def log():
+@app.route("/api/multi", methods=["POST"])
+def multi():
+    session = db.session()
+
+    for payload in flask.request.json["workouts"]:
+        w = Workout.from_api(payload)
+        w.user = g.identity
+        session.add(w)
+
+    session.commit()
+
+    return flask.jsonify({
+        "status": "ok"
+    })
+
+
+@app.route("/api/workout", methods=["POST"])
+def new_workout():
     session = db.session()
 
     w = Workout.from_api(flask.request.json)
@@ -57,8 +73,8 @@ def log():
     })
 
 
-@app.route("/api/log/<int:id>", methods=["DELETE"])
-def unlog(id):
+@app.route("/api/workout/<int:id>", methods=["DELETE"])
+def delete_workout(id):
     session = db.session()
     session.query(Workout).filter(Workout.id == id).delete()
     session.commit()

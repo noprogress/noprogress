@@ -54,10 +54,24 @@
                     });
             },
 
-            log: function log(workout, cont) {
+            multi: function multi(payload, cont) {
                 $http({
                     method: "POST",
-                    url: "/api/log",
+                    url: "/api/multi",
+                    data: payload
+                }).
+                    success(function (data, status, headers, config) {
+                        cont(null, data);
+                    }).
+                    error(function (err, status, headers, config) {
+                        cont(err, null);
+                    });
+            },
+
+            newWorkout: function newWorkout(workout, cont) {
+                $http({
+                    method: "POST",
+                    url: "/api/workout",
                     data: workout
                 }).
                     success(function (data, status, headers, config) {
@@ -68,10 +82,10 @@
                     });
             },
 
-            unlog: function unlog(id, cont) {
+            deleteWorkout: function deleteWorkout(id, cont) {
                 $http({
                     method: "DELETE",
-                    url: "/api/log/" + encodeURIComponent(id)
+                    url: "/api/workout/" + encodeURIComponent(id)
                 }).
                     success(function (data, status, headers, config) {
                         cont(null, data);
@@ -440,6 +454,25 @@
         $scope.$on("workouts.updated", $scope.refresh);
     });
 
+    noprogress.controller("MultiLogCtrl", function ($rootScope, $scope, api) {
+        $scope.doMultiLog = function () {
+            var workouts = $scope.logs.split("\n").map(function (log) {
+                return swolparser.parse(log);
+            });
+
+            api.multi({workouts: workouts}, function (err, data) {
+                if (err) return;
+
+                $scope.logs = "";
+                $rootScope.$broadcast("workouts.added");
+            });
+        };
+
+        $scope.disablePowerUser = function () {
+            $rootScope.powerUser = false;
+        };
+    });
+
     noprogress.controller("LogWorkoutCtrl", function ($rootScope, $scope, api) {
         $scope.reset = function () {
             $scope.workout = {
@@ -490,6 +523,10 @@
             $scope.recalculateMaxSets();
         };
 
+        $scope.enablePowerUser = function () {
+            $rootScope.powerUser = true;
+        };
+
         $scope.reset();
 
         $scope.doLog = function (logForm) {
@@ -497,7 +534,7 @@
                 return;
             }
 
-            api.log($scope.workout, function (err, data) {
+            api.newWorkout($scope.workout, function (err, data) {
                 if (err) return;
                 $rootScope.$broadcast("workouts.added");
                 $scope.reset();
@@ -525,7 +562,7 @@
         };
 
         $scope.removeWorkout = function (id) {
-            api.unlog(id, function (err, data) {
+            api.deleteWorkout(id, function (err, data) {
                 if (err !== null) return;
                 $rootScope.$broadcast("workouts.updated");
             });
