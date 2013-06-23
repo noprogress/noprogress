@@ -6,3 +6,4 @@ venusian
 psycopg2
 requests
 python-dateutil
+uWSGI
