@@ -413,6 +413,7 @@
 
         $scope.grades = {};
         $scope.onerms = {};
+        $scope.roundedOnerms = {};
         $scope.percents = {};
 
         $scope.refresh = function () {
@@ -428,6 +429,7 @@
 
                     var v = data[k][0];
                     $scope.onerms[k] = strStd.wathan(v.weight, v.reps);
+                    $scope.roundedOnerms[k] = Math.round($scope.onerms[k]);
                     $scope.grades[k] = strStd.calculateGrades($scope.gender, k, $scope.bodyweight);
                     $scope.percents[k] = {};
 
@@ -573,7 +575,7 @@
                 var workouts = data.workouts;
 
                 $scope.workouts = workouts;
-                $scope.totalPages = Math.ceil(data.total / $scope.limit);
+                $scope.totalPages = Math.max(Math.ceil(data.total / $scope.limit), 1);
 
                 if ($scope.currentPage > $scope.totalPages) {
                     $scope.currentPage = $scope.totalPages;

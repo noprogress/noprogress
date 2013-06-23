@@ -54,7 +54,7 @@ class User(db.Model, IdMixin):
 
         lift = db.aliased(Lift, stmt)
 
-        return db.session.query(lift).group_by(lift.name)
+        return db.session.query(lift).distinct(lift.name)
 
 
 @app.before_request
