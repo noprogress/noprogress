@@ -10,10 +10,7 @@ app.config.from_object("noprogress.default_settings")
 app.config.from_envvar("NOPROGRESS_SETTINGS")
 db = SQLAlchemy(app)
 
-if app.debug:
-    from flask_debugtoolbar import DebugToolbarExtension
-    toolbar = DebugToolbarExtension(app)
-else:
+if not app.debug:
     import logging
     from logging.handlers import SMTPHandler
     mail_handler = SMTPHandler("127.0.0.1",

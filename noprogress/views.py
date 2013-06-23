@@ -73,10 +73,26 @@ def new_workout():
     })
 
 
+@app.route("/api/workout", methods=["DELETE"])
+def delete_workouts():
+    session = db.session()
+    session.query(Workout) \
+        .filter(Workout.user == g.identity) \
+        .delete()
+    session.commit()
+
+    return flask.jsonify({
+        "status": "ok"
+    })
+
+
 @app.route("/api/workout/<int:id>", methods=["DELETE"])
 def delete_workout(id):
     session = db.session()
-    session.query(Workout).filter(Workout.id == id).delete()
+    session.query(Workout) \
+        .filter(Workout.user == g.identity) \
+        .filter(Workout.id == id) \
+        .delete()
     session.commit()
 
     return flask.jsonify({

@@ -2,16 +2,16 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>{% block title %}{% endblock %} :: noprogress.</title>
+        <title>{% block title %}{% endblock %} :: noprogress</title>
         <link href="{{url_for('static', filename='css/normalize.css')}}" rel="stylesheet">
         <link href="{{url_for('static', filename='css/general_foundicons.css')}}" rel="stylesheet">
         <link href="{{url_for('static', filename='css/foundation.css')}}" rel="stylesheet">
         <link href="{{url_for('static', filename='css/noprogress.css')}}" rel="stylesheet">
     </head>
-    <body>
+    <body ng-app="noprogress" ng-cloak>
         <div class="row">
             <div class="large-12 columns">
-                <nav class="top-bar">
+                <nav class="top-bar" ng-controller="NavBarCtrl">
                     <ul class="title-area">
                         <li class="name">
                             <h1><a href="{{url_for('.home')}}">noprogress.</a></h1>
@@ -21,16 +21,19 @@
 
                     <section class="top-bar-section">
                         <ul class="right">
-                            {% if identity %}
-                            <li class="divider"></li>
-                            <li>
-                                <a href="#" id="signout">Sign out ({{identity.email}})</a>
+                            <li class="divider" ng-show="loggedInUser != null"></li>
+                            <li class="has-dropdown" ng-show="loggedInUser != null">
+                                <a href="#"><%= loggedInUser %></a>
+                                <ul class="dropdown">
+                                    <li><a href="#" ng-click="clearLogs()" eat-click>Clear Logs</a></li>
+                                    <li><a href="#" ng-click="deleteUser()" eat-click>Delete User</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="#" ng-click="signout()" eat-click>Sign Out</a></li>
+                                </ul>
                             </li>
-                            {% else %}
-                            <li>
-                                <a href="#" id="signin"><img src="{{url_for('static', filename='img/persona.png')}}"></a>
+                            <li ng-show="loggedInUser == null">
+                                <a href="#" id="signin" ng-click="signin()" eat-click><img src="{{url_for('static', filename='img/persona.png')}}"></a>
                             </li>
-                            {% endif %}
                         </ul>
                     </section>
                 </nav>
@@ -49,53 +52,11 @@
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script src="{{url_for('static', filename='js/foundation.min.js')}}"></script>
         <script src="https://login.persona.org/include.js"></script>
-        <script>
-            $(document).foundation();
-
-            $("#signin").click(function(e) {
-                e.preventDefault();
-                navigator.id.request({
-                    siteName: "noprogress"
-                });
-            });
-
-            $("#signout").click(function(e) {
-                e.preventDefault();
-                navigator.id.logout();
-            });
-
-            navigator.id.watch({
-                loggedInUser: {{identity_email | tojson | safe}},
-
-                onlogin: function (assertion) {
-                    $.ajax({
-                        type: "POST",
-                        url: {{url_for('.login') | tojson | safe}},
-                        data: {assertion: assertion},
-                        success: function () {
-                            window.location.reload();
-                        },
-                        error: function (xhr, status, err) {
-                            alert("Login failure: " + err);
-                            navigator.id.logout();
-                        }
-                    })
-                },
-
-                onlogout: function () {
-                    $.ajax({
-                        type: "POST",
-                        url: {{url_for('.logout') | tojson | safe}},
-                        success: function () {
-                            window.location.reload();
-                        },
-                        error: function (xhr, status, err) {
-                            alert("Logout failure: " + err);
-                        }
-                    });
-                }
-            });
-        </script>
-        {% block tail %}{% endblock %}
+        <script>window.loggedInUser={{identity_email | tojson | safe}}</script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.js"></script>
+        <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <script src="{{url_for('static', filename='js/foundation-datepicker.js')}}"></script>
+        <script src="{{url_for('static', filename='app/swolparser.js')}}"></script>
+        <script src="{{url_for('static', filename='app/main.js')}}"></script>
     </body>
 </html>

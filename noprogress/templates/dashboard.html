@@ -3,7 +3,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div id="app" ng-app="noprogress" ng-cloak>
+<div id="app">
     <div class="row">
         <div class="large-12 columns">
             <form class="panel" ng-controller="MultiLogCtrl" name="multiLogForm" ng-submit="doMultiLog(multiLogForm)" novalidate ng-show="powerUser">
@@ -151,14 +151,16 @@
                 </div>
             </div>
         </div>
+
+        <div id="clearLogsModal" class="reveal-modal" ng-controller="DialogCtrl">
+            <h2>Clear all your logs?</h2>
+            <p class="lead">Are you sure? You can't recover these!</p>
+            <p>
+                <button class="secondary" ng-click="dismissClearLogs()">Whoops, no!</button>
+                <button class="alert" ng-click="confirmClearLogs()">Yes, I'm serious!</button>
+            </p>
+            <a class="close-reveal-modal">&#215;</a>
+        </div>
     </div>
 </div>
-{% endblock %}
-
-{% block tail %}
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.js"></script>
-<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="{{url_for('static', filename='js/foundation-datepicker.js')}}"></script>
-<script src="{{url_for('static', filename='app/swolparser.js')}}"></script>
-<script src="{{url_for('static', filename='app/main.js')}}"></script>
 {% endblock %}

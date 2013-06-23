@@ -5,6 +5,8 @@
     var noprogress = angular.module("noprogress", [], function($interpolateProvider) {
         $interpolateProvider.startSymbol("<%=");
         $interpolateProvider.endSymbol("%>");
+
+        $(document).foundation();
     });
 
     noprogress.directive("eatClick", function () {
@@ -26,6 +28,55 @@
                         ctrl.$setViewValue($(element).val());
                     });
                 });
+            }
+        };
+    });
+
+    noprogress.factory("persona", function ($http) {
+        navigator.id.watch({
+            loggedInUser: window.loggedInUser,
+
+            onlogin: function (assertion) {
+                $http({
+                    method: "POST",
+                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                    url: "/auth/login",
+                    data: "assertion=" + encodeURIComponent(assertion)
+                }).
+                    success(function (data, status, headers, config) {
+                        window.location.reload();
+                    }).
+                    error(function (err, status, headers, config) {
+                        alert("Login failure: " + err);
+                        navigator.id.logout();
+                    });
+            },
+
+            onlogout: function () {
+                $http({
+                    method: "POST",
+                    url: "/auth/logout"
+                }).
+                    success(function (data, status, headers, config) {
+                        window.location.reload();
+                    }).
+                    error(function (err, status, headers, config) {
+                        alert("Logout failure: " + err);
+                    });
+            }
+        });
+
+        return {
+            loggedInUser: window.loggedInUser,
+
+            signin: function () {
+                navigator.id.request({
+                    siteName: "noprogress"
+                });
+            },
+
+            signout: function () {
+                navigator.id.logout();
             }
         };
     });
@@ -86,6 +137,19 @@
                 $http({
                     method: "DELETE",
                     url: "/api/workout/" + encodeURIComponent(id)
+                }).
+                    success(function (data, status, headers, config) {
+                        cont(null, data);
+                    }).
+                    error(function (err, status, headers, config) {
+                        cont(err, null);
+                    });
+            },
+
+            deleteWorkouts: function deleteWorkouts(cont) {
+                $http({
+                    method: "DELETE",
+                    url: "/api/workout"
                 }).
                     success(function (data, status, headers, config) {
                         cont(null, data);
@@ -407,6 +471,36 @@
         };
     });
 
+    noprogress.controller("NavBarCtrl", function (persona, $scope) {
+        $scope.loggedInUser = persona.loggedInUser;
+
+        $scope.signin = function () {
+            persona.signin();
+        };
+
+        $scope.signout = function () {
+            persona.signout();
+        };
+
+        $scope.clearLogs = function () {
+            $("#clearLogsModal").foundation("reveal", "open");
+        };
+    });
+
+    noprogress.controller("DialogCtrl", function ($scope, $rootScope, api) {
+        $scope.dismissClearLogs = function () {
+            $("#clearLogsModal").foundation("reveal", "close");
+        };
+
+        $scope.confirmClearLogs = function () {
+            api.deleteWorkouts(function (err, data) {
+                if (err) return;
+                $scope.dismissClearLogs();
+                $rootScope.$broadcast("workouts.clobbered");
+            });
+        };
+    });
+
     noprogress.controller("StrStdCtrl", function ($rootScope, $scope, strStd, api) {
         $scope.bodyweight = 70;
         $scope.gender = "male";
@@ -467,7 +561,7 @@
                 if (err) return;
 
                 $scope.logs = "";
-                $rootScope.$broadcast("workouts.added");
+                $rootScope.$broadcast("workouts.clobbered");
             });
         };
 
@@ -539,7 +633,7 @@
 
             api.newWorkout($scope.workout, function (err, data) {
                 if (err) return;
-                $rootScope.$broadcast("workouts.added");
+                $rootScope.$broadcast("workouts.clobbered");
                 $scope.reset();
             });
         };
@@ -597,7 +691,7 @@
             $scope.refresh();
         });
 
-        $scope.$on("workouts.added", function () {
+        $scope.$on("workouts.clobbered", function () {
             $scope.currentPage = 1;
             $rootScope.$broadcast("workouts.updated");
         });
