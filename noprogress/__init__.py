@@ -16,7 +16,7 @@ if app.debug:
 else:
     import logging
     from logging.handlers import SMTPHandler
-    mail_handler = SMTPHandler("127.0.0.1"
+    mail_handler = SMTPHandler("127.0.0.1",
                                "error@noprogress-rfw.rhcloud.com",
                                app.config["ADMINS"], "noprogress error")
     mail_handler.setLevel(logging.ERROR)
