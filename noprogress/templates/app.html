@@ -22,6 +22,8 @@
                             <li class="has-dropdown" ng-show="identity != null">
                                 <a href="#"><%= identity %></a>
                                 <ul class="dropdown">
+                                    <li><a href="/api/workout?format=swol">Export Logs</a></li>
+                                    <li class="divider"></li>
                                     <li><a href="#" ng-click="clearLogs()" eat-click>Clear Logs</a></li>
                                     <li><a href="#" ng-click="deleteUser()" eat-click>Delete User</a></li>
                                     <li class="divider"></li>
@@ -117,12 +119,14 @@
                                                     <a href="#" ng-click="removeSet(lift)" eat-click ng-show="lift.sets.length > 0"><i class="foundicon-minus"></i></a>
                                                 </td>
                                             </tr>
+                                        </tbody>
+                                        <tfoot>
                                             <tr>
                                                 <td colspan="<%= maxSets + 3 %>">
                                                     <a href="#" ng-click="addLift()" eat-click><i class="foundicon-plus"></i> Add Row</a>
                                                 </td>
                                             </tr>
-                                        </tbody>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>

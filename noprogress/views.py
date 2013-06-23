@@ -2,11 +2,13 @@ import flask
 import requests
 import json
 import functools
+import datetime
 
 from flask import g
 
 from . import app, db
 from models import User, Workout
+from . import swol
 
 
 def require_auth(f):
@@ -35,9 +37,20 @@ def list_workout():
     if limit > -1:
         q = q.limit(limit)
 
+    format = flask.request.args.get("format", None)
+
+    logs = [x.to_api() for x in q]
+
+    if format == "swol":
+        return flask.Response("\n".join(swol.dump_workout(l) for l in logs),
+                              mimetype="text/plain",
+                              headers={
+            "Content-Disposition": "attachment;filename=\"workouts-{}.swol\"".format(datetime.date.today().strftime("%Y-%m-%d"))
+        })
+
     return flask.jsonify({
         "total": user.workouts.count(),
-        "workouts": [x.to_api() for x in q]
+        "workouts": logs
     })
 
 
