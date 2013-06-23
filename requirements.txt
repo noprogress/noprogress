@@ -5,3 +5,6 @@ venusian
 psycopg2
 requests
 python-dateutil
+Flask-Assets
+closure
+cssmin

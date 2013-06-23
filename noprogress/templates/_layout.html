@@ -3,10 +3,7 @@
     <head>
         <meta charset="utf-8">
         <title>{% block title %}{% endblock %} :: noprogress</title>
-        <link href="{{url_for('static', filename='css/normalize.css')}}" rel="stylesheet">
-        <link href="{{url_for('static', filename='css/general_foundicons.css')}}" rel="stylesheet">
-        <link href="{{url_for('static', filename='css/foundation.css')}}" rel="stylesheet">
-        <link href="{{url_for('static', filename='css/noprogress.css')}}" rel="stylesheet">
+        {% assets "css_all" %}<link href="{{ASSET_URL}}" rel="stylesheet">{% endassets %}
     </head>
     <body ng-app="noprogress" ng-cloak>
         <div class="row">
@@ -49,14 +46,8 @@
                 <a href="http://github.com/noprogress/noprogress">Fork me on GitHub!</a>
             </div>
         </footer>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-        <script src="{{url_for('static', filename='js/foundation.min.js')}}"></script>
         <script src="https://login.persona.org/include.js"></script>
         <script>window.loggedInUser={{identity_email | tojson | safe}}</script>
-        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.js"></script>
-        <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-        <script src="{{url_for('static', filename='js/foundation-datepicker.js')}}"></script>
-        <script src="{{url_for('static', filename='app/swolparser.js')}}"></script>
-        <script src="{{url_for('static', filename='app/main.js')}}"></script>
+        {% assets "js_all" %}<script src="{{ASSET_URL}}"></script>{% endassets %}
     </body>
 </html>

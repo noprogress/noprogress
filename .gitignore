@@ -39,3 +39,5 @@ nosetests.xml
 VENV
 *.db
 .DS_Store
+noprogress/static/gen
+noprogress/static/.webassets-cache
