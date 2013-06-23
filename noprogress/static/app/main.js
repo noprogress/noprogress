@@ -1,23 +1,26 @@
 /*jshint loopfunc: true */
 (function () {
     "use strict";
+    $(document).foundation();
 
-    var noprogress = angular.module("noprogress", [], function($interpolateProvider) {
+    var noprogress = angular.module("noprogress", []);
+
+    noprogress.
+
+    config(function ($interpolateProvider) {
         $interpolateProvider.startSymbol("<%=");
         $interpolateProvider.endSymbol("%>");
+    }).
 
-        $(document).foundation();
-    });
-
-    noprogress.directive("eatClick", function () {
+    directive("eatClick", function () {
         return function(scope, element, attrs) {
             $(element).click(function(event) {
                 event.preventDefault();
             });
         };
-    });
+    }).
 
-    noprogress.directive("fdatepicker", function () {
+    directive("fdatepicker", function () {
         return {
             scope: true,
             require: "ngModel",
@@ -30,21 +33,25 @@
                 });
             }
         };
-    });
+    }).
 
-    noprogress.factory("persona", function ($http) {
+    factory("persona", function ($rootScope, $http) {
+        $rootScope.identity = window.identity || null;
+
         navigator.id.watch({
-            loggedInUser: window.loggedInUser,
+            loggedInUser: $rootScope.identity,
 
             onlogin: function (assertion) {
                 $http({
                     method: "POST",
                     headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                    url: "/auth/login",
+                    url: "/api/auth/login",
                     data: "assertion=" + encodeURIComponent(assertion)
                 }).
                     success(function (data, status, headers, config) {
-                        window.location.reload();
+                        $rootScope.identity = data.identity_email;
+                        $rootScope.$broadcast("auth.login");
+                        $rootScope.$broadcast("workouts.updated");
                     }).
                     error(function (err, status, headers, config) {
                         alert("Login failure: " + err);
@@ -55,10 +62,11 @@
             onlogout: function () {
                 $http({
                     method: "POST",
-                    url: "/auth/logout"
+                    url: "/api/auth/logout"
                 }).
                     success(function (data, status, headers, config) {
-                        window.location.reload();
+                        $rootScope.identity = null;
+                        $rootScope.$broadcast("auth.logout");
                     }).
                     error(function (err, status, headers, config) {
                         alert("Logout failure: " + err);
@@ -67,8 +75,6 @@
         });
 
         return {
-            loggedInUser: window.loggedInUser,
-
             signin: function () {
                 navigator.id.request({
                     siteName: "noprogress"
@@ -79,9 +85,9 @@
                 navigator.id.logout();
             }
         };
-    });
+    }).
 
-    noprogress.factory("api", function ($http, $rootScope) {
+    factory("api", function ($http, $rootScope) {
         var api = {
             lifts: ["squat", "overhead_press", "bench_press", "deadlift", "power_clean"],
             liftNames: {
@@ -159,10 +165,10 @@
                     });
             },
 
-            workouts: function workouts(offset, limit, cont) {
+            listWorkouts: function listWorkouts(offset, limit, cont) {
                 $http({
                     method: "GET",
-                    url: "/api/workouts",
+                    url: "/api/workout",
                     params: {
                         offset: offset,
                         limit: limit
@@ -187,9 +193,9 @@
         };
         $rootScope.api = api;
         return api;
-    });
+    }).
 
-    noprogress.factory("strStd", function () {
+    factory("strStd", function () {
         function wathan(w, r) {
             return 100 * w / (48.8 + 53.8 * Math.pow(Math.E, -0.075 * r));
         }
@@ -307,9 +313,9 @@
             kgToLb: kgToLb,
             lbToKg: lbToKg
         };
-    });
+    }).
 
-    noprogress.directive("workoutchart", function (api, strStd, $rootScope) {
+    directive("workoutchart", function (api, strStd, $rootScope) {
         var margin = {top: 20, right: 100, bottom: 30, left: 60},
             width = 960 - margin.left - margin.right,
             height = 250 - margin.top - margin.bottom;
@@ -345,7 +351,9 @@
                         .x(function(d) { return x(d.date); })
                         .y(function(d) { return y(d.onerm); });
 
-                    api.workouts(0, -1, function(err, data) {
+                    api.listWorkouts(0, -1, function(err, data) {
+                        if (err !== null) return;
+
                         d3.select(element[0]).selectAll("svg").remove();
 
                         if (data.total === 0) {
@@ -462,18 +470,16 @@
                 refresh();
             }
         };
-    });
+    }).
 
-    noprogress.filter("reprSets", function () {
+    filter("reprSets", function () {
         return function (sets) {
             if (!sets) return "";
             return sets.map(function (set) { return set.weight + "kgx" + set.reps; }).join("<br>");
         };
-    });
+    }).
 
-    noprogress.controller("NavBarCtrl", function (persona, $scope) {
-        $scope.loggedInUser = persona.loggedInUser;
-
+    controller("NavBarCtrl", function (persona, $scope) {
         $scope.signin = function () {
             persona.signin();
         };
@@ -485,9 +491,9 @@
         $scope.clearLogs = function () {
             $("#clearLogsModal").foundation("reveal", "open");
         };
-    });
+    }).
 
-    noprogress.controller("DialogCtrl", function ($scope, $rootScope, api) {
+    controller("DialogCtrl", function ($scope, $rootScope, api) {
         $scope.dismissClearLogs = function () {
             $("#clearLogsModal").foundation("reveal", "close");
         };
@@ -499,9 +505,9 @@
                 $rootScope.$broadcast("workouts.clobbered");
             });
         };
-    });
+    }).
 
-    noprogress.controller("StrStdCtrl", function ($rootScope, $scope, strStd, api) {
+    controller("StrStdCtrl", function ($rootScope, $scope, strStd, api) {
         $scope.bodyweight = 70;
         $scope.gender = "male";
 
@@ -512,6 +518,8 @@
 
         $scope.refresh = function () {
             api.last(function (err, data) {
+                if (err !== null) return;
+
                 $scope.last = data;
 
                 $scope.hasLifts = false;
@@ -549,16 +557,16 @@
         };
         $scope.refresh();
         $scope.$on("workouts.updated", $scope.refresh);
-    });
+    }).
 
-    noprogress.controller("MultiLogCtrl", function ($rootScope, $scope, api) {
+    controller("MultiLogCtrl", function ($rootScope, $scope, api) {
         $scope.doMultiLog = function () {
             var workouts = $scope.logs.split("\n").map(function (log) {
                 return swolparser.parse(log);
             });
 
             api.multi({workouts: workouts}, function (err, data) {
-                if (err) return;
+                if (err !== null) return;
 
                 $scope.logs = "";
                 $rootScope.$broadcast("workouts.clobbered");
@@ -568,9 +576,9 @@
         $scope.disablePowerUser = function () {
             $rootScope.powerUser = false;
         };
-    });
+    }).
 
-    noprogress.controller("LogWorkoutCtrl", function ($rootScope, $scope, api) {
+    controller("LogWorkoutCtrl", function ($rootScope, $scope, api) {
         $scope.reset = function () {
             $scope.workout = {
                 lifts: []
@@ -632,14 +640,14 @@
             }
 
             api.newWorkout($scope.workout, function (err, data) {
-                if (err) return;
+                if (err !== null) return;
                 $rootScope.$broadcast("workouts.clobbered");
                 $scope.reset();
             });
         };
-    });
+    }).
 
-    noprogress.controller("WorkoutsCtrl", function ($rootScope, $scope, api) {
+    controller("WorkoutsCtrl", function ($rootScope, $scope, api) {
         $scope.limit = 5;
         $scope.currentPage = 1;
 
@@ -666,7 +674,9 @@
         };
 
         $scope.refresh = function (cont) {
-            api.workouts(($scope.currentPage - 1) * $scope.limit, $scope.limit, function (err, data) {
+            api.listWorkouts(($scope.currentPage - 1) * $scope.limit, $scope.limit, function (err, data) {
+                if (err !== null) return;
+
                 var workouts = data.workouts;
 
                 $scope.workouts = workouts;

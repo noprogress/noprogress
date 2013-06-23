@@ -1,25 +1,31 @@
 import flask
 import requests
 import json
-import datetime
+import functools
 
 from flask import g
 
 from . import app, db
-from . import slf
-from models import User, Workout, Set, Lift
+from models import User, Workout
+
+
+def require_auth(f):
+    @functools.wraps(f)
+    def _wrapper(*args, **kwargs):
+        if not g.identity:
+            flask.abort(401)
+        return f(*args, **kwargs)
+    return _wrapper
 
 
 @app.route("/")
 def home():
-    if g.identity is None:
-        return flask.render_template("landing.html")
-
-    return flask.redirect(flask.url_for(".dashboard"))
+    return flask.render_template("app.html")
 
 
-@app.route("/api/workouts")
-def api_workouts():
+@app.route("/api/workout")
+@require_auth
+def list_workout():
     user = g.identity
 
     offset = int(flask.request.args.get("offset", 0))
@@ -36,13 +42,15 @@ def api_workouts():
 
 
 @app.route("/api/last")
-def api_last():
+@require_auth
+def list_last():
     user = g.identity
 
     return flask.jsonify({l.name: l.to_api()["sets"] for l in user.find_last()})
 
 
 @app.route("/api/multi", methods=["POST"])
+@require_auth
 def multi():
     session = db.session()
 
@@ -59,6 +67,7 @@ def multi():
 
 
 @app.route("/api/workout", methods=["POST"])
+@require_auth
 def new_workout():
     session = db.session()
 
@@ -74,6 +83,7 @@ def new_workout():
 
 
 @app.route("/api/workout", methods=["DELETE"])
+@require_auth
 def delete_workouts():
     session = db.session()
     session.query(Workout) \
@@ -87,6 +97,7 @@ def delete_workouts():
 
 
 @app.route("/api/workout/<int:id>", methods=["DELETE"])
+@require_auth
 def delete_workout(id):
     session = db.session()
     session.query(Workout) \
@@ -100,15 +111,7 @@ def delete_workout(id):
     })
 
 
-@app.route("/dashboard")
-def dashboard():
-    if g.identity is None:
-        return flask.redirect(flask.url_for(".home"))
-
-    return flask.render_template("dashboard.html")
-
-
-@app.route("/auth/login", methods=["POST"])
+@app.route("/api/auth/login", methods=["POST"])
 def login():
     if "assertion" not in flask.request.form:
         flask.abort(400)
@@ -135,16 +138,21 @@ def login():
                 s.add(u)
                 s.commit()
 
-            return "okay"
+            return flask.jsonify({
+                "status": "ok",
+                "identity_email": email
+            })
 
     flask.abort(500)
 
 
-@app.route("/auth/logout", methods=["POST"])
+@app.route("/api/auth/logout", methods=["POST"])
 def logout():
     try:
         del flask.session["identity_email"]
     except KeyError:
         pass
 
-    return "okay"
+    return flask.jsonify({
+        "status": "ok"
+    })
