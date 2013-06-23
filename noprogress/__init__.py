@@ -19,7 +19,7 @@ assets.register("js_all", Bundle("js/vendor/jquery.js", "js/foundation.min.js",
 
 assets.register("css_all", Bundle("css/normalize.css", "css/general_foundicons.css",
                                   "css/foundation.css", "css/noprogress.css",
-                                  filters="cssmin", output="gen/packed.css"))
+                                  filters="cssutils", output="gen/packed.css"))
 
 if not app.debug:
     import logging
