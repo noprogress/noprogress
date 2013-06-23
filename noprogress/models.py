@@ -1,5 +1,6 @@
 import datetime
 import flask
+from sqlalchemy.orm import validates
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.sql.expression import asc
 
@@ -10,7 +11,7 @@ class IdMixin(object):
     """
     A mixin for entities that want a primary key.
     """
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
 
     @classmethod
     def by_id(cls, id):
@@ -76,7 +77,8 @@ class Workout(db.Model, IdMixin):
 
     date = db.Column(db.Date, nullable=False)
     comment = db.Column(db.Text, nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"),
+                        nullable=False)
 
     user = db.relationship("User", backref=db.backref("workouts",
                                                       cascade="all, delete, delete-orphan",
@@ -120,7 +122,8 @@ class Lift(db.Model, IdMixin):
     name = db.Column(db.String, nullable=False, index=True)
     order = db.Column(db.Integer, nullable=False)
 
-    workout_id = db.Column(db.Integer, db.ForeignKey("workouts.id"), nullable=False)
+    workout_id = db.Column(db.Integer, db.ForeignKey("workouts.id", ondelete="CASCADE"),
+                           nullable=False)
 
     workout = db.relationship("Workout", backref=db.backref("lifts",
                                                             cascade="all, delete, delete-orphan",
@@ -158,7 +161,18 @@ class Set(db.Model, IdMixin):
     reps = db.Column(db.Integer, nullable=False)
     order = db.Column(db.Integer, nullable=False)
 
-    lift_id = db.Column(db.Integer, db.ForeignKey("lifts.id"), nullable=False)
+    @validates("weight")
+    def validate_weight(self, key, weight):
+        assert weight >= 0
+        return weight
+
+    @validates("reps")
+    def validate_reps(self, key, reps):
+        assert reps >= 0
+        return reps
+
+    lift_id = db.Column(db.Integer, db.ForeignKey("lifts.id", ondelete="CASCADE"),
+                        nullable=False)
 
     lift = db.relationship("Lift", backref=db.backref("sets",
                                                       cascade="all, delete, delete-orphan",
@@ -174,4 +188,3 @@ class Set(db.Model, IdMixin):
     @classmethod
     def from_api(cls, payload):
         return cls(weight=payload["weight"], reps=payload["reps"])
-

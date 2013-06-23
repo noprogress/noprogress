@@ -417,14 +417,15 @@
         $scope.percents = {};
 
         $scope.refresh = function () {
-            $scope.hasLifts = false;
-
             api.last(function (err, data) {
                 $scope.last = data;
+
+                $scope.hasLifts = false;
                 Object.keys(data).forEach(function (k) {
                     if (!~api.lifts.indexOf(k)) {
                         return;
                     }
+
                     $scope.hasLifts = true;
 
                     var v = data[k][0];

@@ -57,7 +57,7 @@
                                     <td ng-repeat="set in lift.sets" width="150">
                                         <div class="row collapse">
                                             <div class="large-5 columns">
-                                                <input type="number" ng-model="set.weight" required>
+                                                <input type="number" ng-model="set.weight" min="0" required>
                                             </div>
                                             <div class="large-2 columns">
                                                 <span class="postfix">kg</span>
@@ -66,7 +66,7 @@
                                                 <span class="prefix">x</span>
                                             </div>
                                             <div class="large-3 columns">
-                                                <input type="number" ng-model="set.reps" required>
+                                                <input type="number" ng-model="set.reps" min="0" required>
                                             </div>
                                         </div>
                                     </td>
