@@ -45,7 +45,7 @@
                     var valid = true;
                     var out;
                     try {
-                        out = swolparser.parse(value);
+                        out = swolparser.parse(value || "");
                     } catch (e) {
                         valid = false;
                     }
@@ -601,9 +601,10 @@
         };
     }).
 
-    controller("LogWorkoutCtrl", function ($rootScope, $scope, api) {
+    controller("LogWorkoutCtrl", function ($rootScope, $scope, $filter, api) {
         $scope.reset = function () {
             $scope.workout = {
+                date: $filter("date")(new Date(), "yyyy-MM-dd"),
                 lifts: []
             };
 

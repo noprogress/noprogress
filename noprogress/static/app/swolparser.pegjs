@@ -1,4 +1,9 @@
 swol
+    = workouts:(workouts)? {
+        return workouts.length == 0 ? [] : workouts;
+    }
+
+workouts
     = head:workout tail:("\n" workout)* {
         return [head].concat(tail.map(function (x) { return x[1]; }));
     }

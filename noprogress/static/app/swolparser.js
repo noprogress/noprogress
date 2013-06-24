@@ -38,6 +38,7 @@ window.swolparser = (function(){
     parse: function(input, startRule) {
       var parseFunctions = {
         "swol": parse_swol,
+        "workouts": parse_workouts,
         "workout": parse_workout,
         "date": parse_date,
         "lifts": parse_lifts,
@@ -102,6 +103,24 @@ window.swolparser = (function(){
       }
 
       function parse_swol() {
+        var result0;
+        var pos0;
+
+        pos0 = pos;
+        result0 = parse_workouts();
+        result0 = result0 !== null ? result0 : "";
+        if (result0 !== null) {
+          result0 = (function(offset, workouts) {
+                return workouts.length == 0 ? [] : workouts;
+            })(pos0, result0);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+
+      function parse_workouts() {
         var result0, result1, result2, result3;
         var pos0, pos1, pos2;
 

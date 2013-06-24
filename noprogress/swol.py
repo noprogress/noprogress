@@ -57,8 +57,12 @@ def dump_lift(lift):
 
 
 def dump_workout(workout):
-    return "{}|{}".format(workout["date"],
-                          ",".join(dump_lift(lift) for lift in workout["lifts"]))
+    workout = "{}|{}".format(workout["date"],
+                             ",".join(dump_lift(lift) for lift in workout["lifts"]))
+    if workout["comment"] is not None:
+        workout += "#" + workout["comment"]
+
+    return workout
 
 
 if __name__ == "__main__":
