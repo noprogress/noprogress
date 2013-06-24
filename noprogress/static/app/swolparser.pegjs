@@ -1,4 +1,9 @@
 swol
+    = head:workout tail:("\n" workout)* {
+        return [head].concat(tail.map(function (x) { return x[1]; }));
+    }
+
+workout
     = date:date "|" lifts:lifts {
         return { date: date, lifts: lifts };
     }

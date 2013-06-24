@@ -35,6 +35,31 @@
         };
     }).
 
+    directive("swol", function () {
+        return {
+            scope: true,
+            require: "ngModel",
+
+            link: function(scope, element, attrs, ctrl) {
+                ctrl.$parsers.unshift(function (value) {
+                    var valid = true;
+                    var out;
+                    try {
+                        out = swolparser.parse(value);
+                    } catch (e) {
+                        valid = false;
+                    }
+                    ctrl.$setValidity("syntax", valid);
+                    return out;
+                });
+
+                ctrl.$formatters.unshift(function (value) {
+                    return value;
+                });
+            }
+        };
+    }).
+
     factory("persona", function ($rootScope, $http) {
         $rootScope.identity = window.identity || null;
 
@@ -561,9 +586,7 @@
 
     controller("MultiLogCtrl", function ($rootScope, $scope, api) {
         $scope.doMultiLog = function () {
-            var workouts = $scope.logs.split("\n").map(function (log) {
-                return swolparser.parse(log);
-            });
+            var workouts = swolparser.parse($scope.logs);
 
             api.multi({workouts: workouts}, function (err, data) {
                 if (err !== null) return;

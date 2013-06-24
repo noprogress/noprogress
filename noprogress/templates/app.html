@@ -53,7 +53,8 @@
                         <form class="panel" ng-controller="MultiLogCtrl" name="multiLogForm" ng-submit="doMultiLog(multiLogForm)" novalidate ng-show="powerUser">
                             <div class="row">
                                 <div class="large-12 columns">
-                                    <textarea ng-model="logs" placeholder="Example: 2013-06-15|Squat@120.0x5+120.0x5+120.0x5,Overhead Press@40.0x5+40.0x5+40.0x5,Power Clean@50.0x3+50.0x3+50.0x3+50.0x3+50.0x3" required></textarea>
+                                    <textarea ng-model="logs" placeholder="Example: 2013-06-15|Squat@120.0x5+120.0x5+120.0x5,Overhead Press@40.0x5+40.0x5+40.0x5,Power Clean@50.0x3+50.0x3+50.0x3+50.0x3+50.0x3" required swol name="logs" ng-class="{error: multiLogForm.logs.$error.syntax}"></textarea>
+                                    <small class="error" ng-show="multiLogForm.logs.$error.syntax">Syntax error</small>
                                 </div>
                             </div>
                             <div class="row">
@@ -73,8 +74,9 @@
                         <form class="panel" ng-controller="LogWorkoutCtrl" name="logForm" ng-submit="doLog(logForm)" novalidate ng-show="!powerUser">
                             <div class="row">
                                 <div class="large-2 columns">
-                                    <label for="date">Date</label>
-                                    <input type="text" id="date" fdatepicker data-date-format="yyyy-mm-dd" ng-model="workout.date" required>
+                                    <label for="date" ng-class="{error: !logForm.date.$valid && !logForm.date.$pristine}">Date</label>
+                                    <input type="text" id="date" fdatepicker data-date-format="yyyy-mm-dd" ng-model="workout.date" name="date" required ng-class="{error: !logForm.date.$valid && !logForm.date.$pristine}">
+                                    <small class="error" ng-show="!logForm.date.$pristine && logForm.date.$error.required">Required</small>
                                 </div>
                                 <div class="large-10 columns">
                                     <label for="comment">Comment</label>
@@ -92,32 +94,36 @@
                                         </thead>
                                         <tbody>
                                             <tr ng-repeat="lift in workout.lifts">
-                                                <td>
-                                                    <a href="#" ng-click="removeLift(lift)" eat-click><i class="foundicon-remove"></i></a>
-                                                </td>
-                                                <td>
-                                                    <select ng-model="lift.name" ng-options="n as api.liftNames[n] for n in api.lifts" required></select>
-                                                </td>
-                                                <td ng-repeat="set in lift.sets" width="150">
-                                                    <div class="row collapse">
-                                                        <div class="large-5 columns">
-                                                            <input type="number" ng-model="set.weight" min="0" required>
-                                                        </div>
-                                                        <div class="large-2 columns">
-                                                            <span class="postfix">kg</span>
-                                                        </div>
-                                                        <div class="large-2 columns">
-                                                            <span class="prefix">x</span>
-                                                        </div>
-                                                        <div class="large-3 columns">
-                                                            <input type="number" ng-model="set.reps" min="0" required>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td colspan="<%= maxSets - lift.sets.length + 1 %>">
-                                                    <a href="#" ng-click="addSet(lift)" eat-click><i class="foundicon-plus"></i></a><br/ >
-                                                    <a href="#" ng-click="removeSet(lift)" eat-click ng-show="lift.sets.length > 0"><i class="foundicon-minus"></i></a>
-                                                </td>
+                                                <ng-form name="liftName">
+                                                    <td>
+                                                        <a href="#" ng-click="removeLift(lift)" eat-click><i class="foundicon-remove"></i></a>
+                                                    </td>
+                                                    <td>
+                                                        <select ng-model="lift.name" ng-options="n as api.liftNames[n] for n in api.lifts" name="name" required ng-class="{error: !liftForm.name.$valid && !liftForm.name.$pristine}"></select>
+                                                    </td>
+                                                    <td ng-repeat="set in lift.sets" width="150">
+                                                        <ng-form name="setForm">
+                                                            <div class="row collapse">
+                                                                <div class="large-5 columns">
+                                                                    <input type="number" ng-model="set.weight" min="0" name="weight" required ng-class="{error: !setForm.weight.$valid && !setForm.weight.$pristine}">
+                                                                </div>
+                                                                <div class="large-2 columns">
+                                                                    <span class="postfix">kg</span>
+                                                                </div>
+                                                                <div class="large-2 columns">
+                                                                    <span class="prefix">x</span>
+                                                                </div>
+                                                                <div class="large-3 columns">
+                                                                    <input type="number" ng-model="set.reps" min="0" name="reps" required ng-class="{error: !setForm.reps.$valid && !setForm.reps.$pristine}">
+                                                                </div>
+                                                            </div>
+                                                        </ng-form>
+                                                    </td>
+                                                    <td colspan="<%= maxSets - lift.sets.length + 1 %>">
+                                                        <a href="#" ng-click="addSet(lift)" eat-click><i class="foundicon-plus"></i></a><br/ >
+                                                        <a href="#" ng-click="removeSet(lift)" eat-click ng-show="lift.sets.length > 0"><i class="foundicon-minus"></i></a>
+                                                    </td>
+                                                </ng-form>
                                             </tr>
                                         </tbody>
                                         <tfoot>

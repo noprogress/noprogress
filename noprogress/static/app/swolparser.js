@@ -38,6 +38,7 @@ window.swolparser = (function(){
     parse: function(input, startRule) {
       var parseFunctions = {
         "swol": parse_swol,
+        "workout": parse_workout,
         "date": parse_date,
         "lifts": parse_lifts,
         "lift": parse_lift,
@@ -101,6 +102,83 @@ window.swolparser = (function(){
       }
 
       function parse_swol() {
+        var result0, result1, result2, result3;
+        var pos0, pos1, pos2;
+
+        pos0 = pos;
+        pos1 = pos;
+        result0 = parse_workout();
+        if (result0 !== null) {
+          result1 = [];
+          pos2 = pos;
+          if (input.charCodeAt(pos) === 10) {
+            result2 = "\n";
+            pos++;
+          } else {
+            result2 = null;
+            if (reportFailures === 0) {
+              matchFailed("\"\\n\"");
+            }
+          }
+          if (result2 !== null) {
+            result3 = parse_workout();
+            if (result3 !== null) {
+              result2 = [result2, result3];
+            } else {
+              result2 = null;
+              pos = pos2;
+            }
+          } else {
+            result2 = null;
+            pos = pos2;
+          }
+          while (result2 !== null) {
+            result1.push(result2);
+            pos2 = pos;
+            if (input.charCodeAt(pos) === 10) {
+              result2 = "\n";
+              pos++;
+            } else {
+              result2 = null;
+              if (reportFailures === 0) {
+                matchFailed("\"\\n\"");
+              }
+            }
+            if (result2 !== null) {
+              result3 = parse_workout();
+              if (result3 !== null) {
+                result2 = [result2, result3];
+              } else {
+                result2 = null;
+                pos = pos2;
+              }
+            } else {
+              result2 = null;
+              pos = pos2;
+            }
+          }
+          if (result1 !== null) {
+            result0 = [result0, result1];
+          } else {
+            result0 = null;
+            pos = pos1;
+          }
+        } else {
+          result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, head, tail) {
+                return [head].concat(tail.map(function (x) { return x[1]; }));
+            })(pos0, result0[0], result0[1]);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+
+      function parse_workout() {
         var result0, result1, result2;
         var pos0, pos1;
 
