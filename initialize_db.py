@@ -8,7 +8,15 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
 db.create_all()
 
-for lift in ["squat", "front_squat", "bench_press", "overhead_press", "deadlift", "power_clean"]:
+for lift in [
+    "squat",
+    "front_squat",
+    "bench_press",
+    "overhead_press",
+    "deadlift",
+    "power_clean",
+    "power_snatch"
+]:
     db.session.add(models.LiftType(name=lift))
 
 db.session.commit()

@@ -109,7 +109,7 @@ class Workout(db.Model, IdMixin):
 class LiftType(db.Model, IdMixin):
     __tablename__ = "lift_types"
 
-    name = db.Column(db.String, nullable=False, index=True)
+    name = db.Column(db.String, nullable=False, unique=True)
 
     @classmethod
     def by_name(cls, name):
