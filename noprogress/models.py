@@ -123,7 +123,10 @@ class LiftType(db.Model, IdMixin):
 
     @classmethod
     def from_api(cls, payload):
-        return cls.by_name(payload)
+        lift_type = cls.by_name(payload.replace(" ", "_").lower())
+        if lift_type is None:
+            raise ValueError("unacceptable lift")
+        return lift_type
 
 
 class Lift(db.Model, IdMixin):
@@ -152,9 +155,7 @@ class Lift(db.Model, IdMixin):
 
     @classmethod
     def from_api(cls, payload):
-        lift_type = LiftType.from_api(payload["type"].replace(" ", "_").lower())
-        if lift_type is None:
-            raise ValueError("unacceptable lift")
+        lift_type = LiftType.from_api(payload["type"])
 
         l = cls(lift_type=lift_type)
 
@@ -175,12 +176,14 @@ class Set(db.Model, IdMixin):
 
     @validates("weight")
     def validate_weight(self, key, weight):
-        assert weight >= 0
+        if weight < 0:
+            raise ValueError("weight must be >= 0")
         return weight
 
     @validates("reps")
     def validate_reps(self, key, reps):
-        assert reps >= 0
+        if reps < 0:
+            raise ValueError("reps must be >= 0")
         return reps
 
     lift_id = db.Column(db.Integer, db.ForeignKey("lifts.id", ondelete="CASCADE"),
