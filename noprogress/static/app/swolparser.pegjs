@@ -9,13 +9,18 @@ workouts
     }
 
 workout
-    = date:date "|" lifts:lifts {
-        return { date: date, lifts: lifts };
+    = date:date "|" lifts:lifts comment:("#" comment)? {
+        return { date: date, lifts: lifts, comment: comment[0] == "#" ? comment[1] : null };
+    }
+
+comment
+    = comment:[^\n]* {
+        return comment.join("");
     }
 
 date
     = date:([0-9][0-9][0-9][0-9] "-" [0-9][0-9] "-" [0-9][0-9]) {
-        return date.join("");
+        return (new Date(date.join(""))).valueOf() / 1000;
     }
 
 
@@ -25,8 +30,8 @@ lifts
     }
 
 lift
-    = name:[^@]* "@" sets:sets {
-        return { name: name.join(""), sets: sets };
+    = type:[^@]* "@" sets:sets {
+        return { type: type.join(""), sets: sets };
     }
 
 sets
@@ -41,7 +46,7 @@ set
 
 weight
     = whole:[0-9]+ decimal:("." [0-9]*)? {
-        return parseFloat(whole.join("") + decimal.join(""));
+        return parseFloat(whole.join("") + (decimal || []).join(""));
     }
 
 reps

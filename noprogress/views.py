@@ -7,7 +7,7 @@ import datetime
 from flask import g
 
 from . import app, db
-from models import User, Workout
+from models import User, Workout, LiftType
 from . import swol
 
 
@@ -27,7 +27,7 @@ def home():
 
 @app.route("/api/workout")
 @require_auth
-def list_workout():
+def list_workouts():
     user = g.identity
 
     offset = int(flask.request.args.get("offset", 0))
@@ -39,10 +39,10 @@ def list_workout():
 
     format = flask.request.args.get("format", None)
 
-    logs = [x.to_api() for x in q]
+    workouts = [x.to_api() for x in q]
 
     if format == "swol":
-        return flask.Response("\n".join(swol.dump_workout(l) for l in logs),
+        return flask.Response("\n".join(swol.dump_workout(l) for l in workouts),
                               mimetype="text/plain",
                               headers={
             "Content-Disposition": "attachment;filename=\"workouts-{}.swol\"".format(datetime.date.today().strftime("%Y-%m-%d"))
@@ -50,7 +50,15 @@ def list_workout():
 
     return flask.jsonify({
         "total": user.workouts.count(),
-        "workouts": logs
+        "workouts": workouts
+    })
+
+
+@app.route("/api/lift_type")
+@require_auth
+def list_lift_types():
+    return flask.jsonify({
+        "lift_types": [t.to_api() for t in db.session.query(LiftType).all()]
     })
 
 
@@ -59,7 +67,7 @@ def list_workout():
 def list_last():
     user = g.identity
 
-    return flask.jsonify({l.name: l.to_api()["sets"] for l in user.find_last()})
+    return flask.jsonify({l.lift_type.name: l.to_api()["sets"] for l in user.find_last()})
 
 
 @app.route("/api/multi", methods=["POST"])

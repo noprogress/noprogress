@@ -12,7 +12,7 @@ app.config.from_envvar("NOPROGRESS_SETTINGS")
 db = SQLAlchemy(app)
 assets = Environment(app)
 
-assets.register("js_all", Bundle("js/vendor/jquery.js", "js/foundation.min.js",
+assets.register("js_all", Bundle("js/vendor/jquery.js", "js/foundation.min.js", "js/lodash.js",
                                  "js/foundation-datepicker.js", "js/d3.v3.js", "js/angular.js",
                                  "app/swolparser.js", "app/main.js",
                                  filters="uglifyjs", output="gen/packed.js"))

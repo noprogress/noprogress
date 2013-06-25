@@ -20,7 +20,7 @@
         };
     }).
 
-    directive("fdatepicker", function () {
+    directive("fdatepicker", function ($filter) {
         return {
             scope: true,
             require: "ngModel",
@@ -31,25 +31,31 @@
                         ctrl.$setViewValue($(element).val());
                     });
                 });
+
+                ctrl.$parsers.push(function (value) {
+                    return new Date(value) / 1000;
+                });
+
+                ctrl.$formatters.push(function (value) {
+                    return $filter("date")(new Date(value * 1000), "yyyy-MM-dd");
+                });
             }
         };
     }).
 
     directive("swol", function () {
         return {
-            scope: true,
             require: "ngModel",
 
             link: function(scope, element, attrs, ctrl) {
                 ctrl.$parsers.unshift(function (value) {
-                    var valid = true;
                     var out;
                     try {
                         out = swolparser.parse(value || "");
                     } catch (e) {
-                        valid = false;
+                        if (e.name !== "SyntaxError") throw e;
                     }
-                    ctrl.$setValidity("syntax", valid);
+                    ctrl.$setValidity("syntax", out !== void 0);
                     return out;
                 });
 
@@ -114,14 +120,7 @@
 
     factory("api", function ($http, $rootScope) {
         var api = {
-            lifts: ["squat", "overhead_press", "bench_press", "deadlift", "power_clean"],
-            liftNames: {
-                squat: "Squat",
-                overhead_press: "Overhead Press",
-                bench_press: "Bench Press",
-                deadlift: "Deadlift",
-                power_clean: "Power Clean"
-            },
+            lifts: [],
 
             last: function last(cont) {
                 $http({
@@ -190,6 +189,19 @@
                     });
             },
 
+            listLiftTypes: function last(cont) {
+                $http({
+                    method: "GET",
+                    url: "/api/lift_type"
+                }).
+                    success(function (data, status, headers, config) {
+                        cont(null, data);
+                    }).
+                    error(function (err, status, headers, config) {
+                        cont(err, null);
+                    });
+            },
+
             listWorkouts: function listWorkouts(offset, limit, cont) {
                 $http({
                     method: "GET",
@@ -203,9 +215,10 @@
                         var workouts = data.workouts;
 
                         workouts.forEach(function (workout) {
+                            workout.date = new Date(workout.date * 1000);
                             workout.liftSetsMap = {};
                             workout.lifts.forEach(function (lift) {
-                                workout.liftSetsMap[lift.name] = lift.sets;
+                                workout.liftSetsMap[lift.type] = lift.sets;
                             });
                         });
 
@@ -216,6 +229,7 @@
                     });
             }
         };
+
         $rootScope.api = api;
         return api;
     }).
@@ -235,6 +249,7 @@
 
         function calculateGrades(sex, lift, bw) {
             var table = tables[sex][lift];
+            if (!table) return null;
 
             for (var i = 0; i < table.length; ++i) {
                 var bwLimit = lbToKg(table[i][0]);
@@ -340,7 +355,7 @@
         };
     }).
 
-    directive("workoutchart", function (api, strStd, $rootScope) {
+    directive("workoutchart", function (api, strStd, $rootScope, $filter) {
         var margin = {top: 20, right: 100, bottom: 30, left: 60},
             width = 960 - margin.left - margin.right,
             height = 250 - margin.top - margin.bottom;
@@ -352,8 +367,6 @@
         return {
             restrict: "E",
             link: function (scope, element, attrs) {
-                var parseDate = d3.time.format("%Y-%m-%d").parse;
-
                 function refresh() {
                     var color = d3.scale.category10();
 
@@ -393,11 +406,12 @@
                                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
                         var workouts = data.workouts;
-                        workouts.forEach(function (d) {
-                            d.date = parseDate(d.date);
-                        });
 
-                        color.domain(api.lifts);
+                        var lifts = data.workouts.reduce(function (acc, x) {
+                            return _.union(acc, Object.keys(x.liftSetsMap));
+                        }, []).sort();
+
+                        color.domain(lifts);
 
                         var onerms = color.domain().map(function (name) {
                             return {
@@ -487,7 +501,7 @@
                         legend.append("text")
                             .attr("x", 20)
                             .attr("y", function (d, i) { return (i *  20) + 9;})
-                            .text(function (d) { return api.liftNames[d.name]; });
+                            .text(function (d) { return $filter("liftName")(d.name); });
                     });
                 }
 
@@ -501,6 +515,16 @@
         return function (sets) {
             if (!sets) return "";
             return sets.map(function (set) { return set.weight + "kgx" + set.reps; }).join("<br>");
+        };
+    }).
+
+    filter("liftName", function () {
+        return function (name) {
+            var v = name.replace(/_./, function (x) {
+                return " " + x[1].toUpperCase();
+            });
+            v = v[0].toUpperCase() + v.slice(1);
+            return v;
         };
     }).
 
@@ -536,33 +560,30 @@
         $scope.bodyweight = 70;
         $scope.gender = "male";
 
-        $scope.grades = {};
-        $scope.onerms = {};
-        $scope.roundedOnerms = {};
-        $scope.percents = {};
-
         $scope.refresh = function () {
             api.last(function (err, data) {
+                $scope.liftNames = [];
+                $scope.grades = {};
+                $scope.onerms = {};
+                $scope.roundedOnerms = {};
+                $scope.percents = {};
+
                 if (err !== null) return;
 
                 $scope.last = data;
 
-                $scope.hasLifts = false;
                 Object.keys(data).forEach(function (k) {
-                    if (!~api.lifts.indexOf(k)) {
-                        return;
-                    }
-
-                    $scope.hasLifts = true;
+                    var grades = strStd.calculateGrades($scope.gender, k, $scope.bodyweight);
+                    if (grades === null) return;
 
                     var v = data[k][0];
+                    $scope.liftNames.push(k);
                     $scope.onerms[k] = strStd.wathan(v.weight, v.reps);
                     $scope.roundedOnerms[k] = Math.round($scope.onerms[k]);
-                    $scope.grades[k] = strStd.calculateGrades($scope.gender, k, $scope.bodyweight);
+                    $scope.grades[k] = grades;
                     $scope.percents[k] = {};
 
                     var onerm = $scope.onerms[k];
-                    var grades = $scope.grades[k];
                     var percent = 0;
 
                     if (onerm < grades.novice) {
@@ -578,6 +599,8 @@
                     }
                     $scope.percents[k] = Math.round(percent * 100);
                 });
+
+                $scope.liftNames.sort();
             });
         };
         $scope.refresh();
@@ -586,8 +609,7 @@
 
     controller("MultiLogCtrl", function ($rootScope, $scope, api) {
         $scope.doMultiLog = function () {
-            var workouts = swolparser.parse($scope.logs);
-
+            var workouts = $scope.logs;
             api.multi({workouts: workouts}, function (err, data) {
                 if (err !== null) return;
 
@@ -602,26 +624,22 @@
     }).
 
     controller("LogWorkoutCtrl", function ($rootScope, $scope, $filter, api) {
+        api.listLiftTypes(function (err, data) {
+            $scope.liftTypes = data.lift_types.map(function (n) {
+                return {
+                    raw: n,
+                    friendly: $filter("liftName")(n)
+                };
+            });
+        });
+
         $scope.reset = function () {
             $scope.workout = {
-                date: $filter("date")(new Date(), "yyyy-MM-dd"),
+                date: (new Date()).valueOf() / 1000,
                 lifts: []
             };
 
-            $scope.maxSets = 0;
-            $scope.maxSetsRange = [];
             $scope.addLift();
-        };
-
-        $scope.recalculateMaxSets = function () {
-            $scope.maxSets = Math.max.apply(Math, $scope.workout.lifts.map(function (l) {
-                return l.sets.length;
-            }));
-
-            $scope.maxSetsRange = [];
-            for (var i = 1; i <= $scope.maxSets; ++i) {
-                $scope.maxSetsRange.push(i);
-            }
         };
 
         $scope.addLift = function () {
@@ -640,16 +658,20 @@
 
         $scope.removeSet = function (lift) {
             lift.sets.pop();
-            $scope.recalculateMaxSets();
         };
 
         $scope.addSet = function (lift) {
-            lift.sets.push({
-                weight: null,
-                reps: null
-            });
-
-            $scope.recalculateMaxSets();
+            if (lift.sets.length >= 1) {
+                lift.sets.push({
+                    weight: lift.sets[lift.sets.length - 1].weight,
+                    reps: lift.sets[lift.sets.length - 1].reps
+                });
+            } else {
+                lift.sets.push({
+                    weight: null,
+                    reps: null
+                });
+            }
         };
 
         $scope.enablePowerUser = function () {

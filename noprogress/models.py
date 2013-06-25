@@ -3,6 +3,7 @@ import flask
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.sql.expression import desc
+import pytz
 
 from . import app, db
 
@@ -50,10 +51,11 @@ class User(db.Model, IdMixin):
         return db.session.query(Lift) \
             .filter(Set.lift_id == Lift.id) \
             .filter(Lift.workout_id == Workout.id) \
+            .filter(Lift.lift_type_id == LiftType.id) \
             .filter(Workout.user_id == self.id) \
-            .order_by(Lift.name) \
+            .order_by(LiftType.name) \
             .order_by(desc(Workout.date)) \
-            .distinct(Lift.name)
+            .distinct(LiftType.name)
 
 
 @app.before_request
@@ -86,14 +88,14 @@ class Workout(db.Model, IdMixin):
     def to_api(self):
         return {
             "id": self.id,
-            "date": self.date.strftime("%Y-%m-%d"),
+            "date": self.date.strftime("%s"),
             "comment": self.comment,
             "lifts": [l.to_api() for l in self.lifts]
         }
 
     @classmethod
     def from_api(cls, payload):
-        w = cls(date=datetime.datetime.strptime(payload["date"], "%Y-%m-%d").date(),
+        w = cls(date=datetime.datetime.fromtimestamp(payload["date"], tz=pytz.utc).date(),
                 comment=payload.get("comment", None))
 
         for i, lift in enumerate(payload["lifts"]):
@@ -104,20 +106,34 @@ class Workout(db.Model, IdMixin):
         return w
 
 
+class LiftType(db.Model, IdMixin):
+    __tablename__ = "lift_types"
+
+    name = db.Column(db.String, nullable=False, index=True)
+
+    @classmethod
+    def by_name(cls, name):
+        try:
+            return db.session.query(cls).filter(cls.name == name).one()
+        except (NoResultFound, MultipleResultsFound):
+            return None
+
+    def to_api(self):
+        return self.name
+
+    @classmethod
+    def from_api(cls, payload):
+        return cls.by_name(payload)
+
+
 class Lift(db.Model, IdMixin):
     __tablename__ = "lifts"
 
-    SYNONYMS = {
-        "squats": "squat",
-        "deadlifts": "deadlift",
-        "bench": "bench_press",
-        "overhead": "overhead_press"
-    }
+    lift_type_id = db.Column(db.Integer, db.ForeignKey("lift_types.id", ondelete="CASCADE"),
+                             nullable=False)
 
-    ACCEPTABLE_NAMES = {"squat", "deadlift", "bench_press", "overhead_press", "power_clean",
-                        "front_squat"}
+    lift_type = db.relationship("LiftType", lazy="joined")
 
-    name = db.Column(db.String, nullable=False, index=True)
     order = db.Column(db.Integer, nullable=False)
 
     workout_id = db.Column(db.Integer, db.ForeignKey("workouts.id", ondelete="CASCADE"),
@@ -130,19 +146,17 @@ class Lift(db.Model, IdMixin):
 
     def to_api(self):
         return {
-            "name": self.name,
+            "type": self.lift_type.to_api(),
             "sets": [s.to_api() for s in self.sets]
         }
 
     @classmethod
     def from_api(cls, payload):
-        name = payload["name"].replace(" ", "_").lower()
-        name = cls.SYNONYMS.get(name, name)
+        lift_type = LiftType.from_api(payload["type"].replace(" ", "_").lower())
+        if lift_type is None:
+            raise ValueError("unacceptable lift")
 
-        if name not in cls.ACCEPTABLE_NAMES:
-            raise ValueError("{} not an acceptable lift".format(name))
-
-        l = cls(name=name)
+        l = cls(lift_type=lift_type)
 
         for i, set in enumerate(payload["sets"]):
             s = Set.from_api(set)
