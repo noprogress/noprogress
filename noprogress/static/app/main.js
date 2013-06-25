@@ -43,7 +43,7 @@
         };
     }).
 
-    directive("swol", function () {
+    directive("swol", function (swol) {
         return {
             require: "ngModel",
 
@@ -51,7 +51,7 @@
                 ctrl.$parsers.unshift(function (value) {
                     var out;
                     try {
-                        out = swolparser.parse(value || "");
+                        out = swol.parse(value || "");
                     } catch (e) {
                         if (e.name !== "SyntaxError") throw e;
                     }
@@ -114,6 +114,14 @@
 
             signout: function () {
                 navigator.id.logout();
+            }
+        };
+    }).
+
+    factory("swol", function () {
+        return {
+            parse: function (value) {
+                return window.swolparser.parse(value);
             }
         };
     }).
@@ -477,7 +485,7 @@
                         .x(function(d) { return x(d.date); })
                         .y(function(d) { return y(d.onerm); });
 
-                    api.listWorkouts(0, -1, function(err, data) {
+                    api.listWorkouts(0, 50, function(err, data) {
                         if (err !== null) return;
 
                         d3.select(element[0]).selectAll("svg").remove();
