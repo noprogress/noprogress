@@ -4,6 +4,7 @@ import json
 import datetime
 import dateutil.parser
 import time
+import pytz
 
 
 def parse_lift(raw):
@@ -33,7 +34,7 @@ def parse_workout(line):
     if not raw_date:
         date = datetime.date.today()
     else:
-        date = dateutil.parser.parse(raw_date)
+        date = dateutil.parser.parse(raw_date).date()
 
     raw_lifts, _, comment = right.partition("#")
 
@@ -45,7 +46,7 @@ def parse_workout(line):
         lifts.append(parse_lift(raw_lift))
 
     return {
-        "date": date.strftime("%Y-%m-%d"),
+        "date": date.strftime("%s"),
         "comment": comment,
         "lifts": lifts
     }
@@ -58,7 +59,7 @@ def dump_lift(lift):
 
 def dump_workout(workout):
     comment = workout["comment"]
-    workout = "{}|{}".format(workout["date"],
+    workout = "{}|{}".format(datetime.datetime.fromtimestamp(workout["date"], tz=pytz.UTC).strftime("%Y-%m-%d"),
                              ",".join(dump_lift(lift) for lift in workout["lifts"]))
     if comment is not None:
         workout += "#" + comment

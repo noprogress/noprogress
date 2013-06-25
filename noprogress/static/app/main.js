@@ -43,7 +43,7 @@
         };
     }).
 
-    directive("swol", function () {
+    directive("swol", function (swol) {
         return {
             require: "ngModel",
 
@@ -51,7 +51,7 @@
                 ctrl.$parsers.unshift(function (value) {
                     var out;
                     try {
-                        out = swolparser.parse(value || "");
+                        out = swol.parse(value || "");
                     } catch (e) {
                         if (e.name !== "SyntaxError") throw e;
                     }
@@ -114,6 +114,14 @@
 
             signout: function () {
                 navigator.id.logout();
+            }
+        };
+    }).
+
+    factory("swol", function () {
+        return {
+            parse: function (value) {
+                return window.swolparser.parse(value);
             }
         };
     }).
@@ -273,6 +281,80 @@
         // http://push-hard.blogspot.com/2009/10/basic-strength-standards-for-adult-men.html
         // http://push-hard.blogspot.com/2009/10/basic-strength-standards-for-adult.html
         var tables = {
+            female: {
+                overhead_press:
+                [[97, 31, 42, 50, 66, 85],
+                 [105, 33, 46, 53, 71, 91],
+                 [114, 36, 49, 58, 76, 97],
+                 [123, 38, 52, 61, 81, 104],
+                 [132, 40, 55, 65, 85, 110],
+                 [148, 44, 60, 72, 94, 121],
+                 [165, 48, 65, 77, 102, 134],
+                 [181, 51, 70, 83, 110, 140],
+                 [198, 55, 75, 89, 117, 151],
+                 [Infinity, 58, 79, 93, 123, 159]],
+
+                bench_press:
+                [[97, 49, 63, 73, 94, 116],
+                 [105, 53, 68, 79, 102, 124],
+                 [114, 57, 73, 85, 109, 133],
+                 [123, 60, 77, 90, 116, 142],
+                 [132, 64, 82, 95, 122, 150],
+                 [148, 70, 90, 105, 135, 165],
+                 [165, 76, 97, 113, 146, 183],
+                 [181, 81, 104, 122, 158, 192],
+                 [198, 88, 112, 130, 167, 205],
+                 [Infinity, 92, 118, 137, 177, 217]],
+
+                squat:
+                [[97, 46, 84, 98, 129, 163],
+                 [105, 49, 91, 106, 140, 174],
+                 [114, 53, 98, 114, 150, 187],
+                 [123, 56, 103, 121, 160, 199],
+                 [132, 59, 110, 127, 168, 211],
+                 [148, 65, 121, 141, 185, 232],
+                 [165, 70, 130, 151, 200, 256],
+                 [181, 75, 139, 164, 215, 268],
+                 [198, 81, 150, 174, 229, 288],
+                 [Infinity, 85, 158, 184, 242, 303]],
+
+                deadlift:
+                [[97, 57, 105, 122, 175, 232],
+                 [105, 61, 114, 132, 189, 242],
+                 [114, 66, 122, 142, 200, 253],
+                 [123, 70, 129, 151, 211, 263],
+                 [132, 74, 137, 159, 220, 273],
+                 [148, 81, 151, 176, 241, 295],
+                 [165, 88, 162, 189, 258, 319],
+                 [181, 94, 174, 204, 273, 329],
+                 [198, 101, 187, 217, 284, 349],
+                 [Infinity, 107, 197, 229, 297, 364]],
+
+                power_clean:
+                [[97, 33, 61, 70, 93, 117],
+                 [105, 35, 66, 76, 101, 125],
+                 [114, 38, 70, 82, 108, 135],
+                 [123, 40, 74, 87, 115, 143],
+                 [132, 43, 79, 92, 121, 152],
+                 [148, 47, 87, 101, 133, 167],
+                 [165, 50, 93, 109, 144, 184],
+                 [181, 54, 100, 118, 155, 193],
+                 [198, 58, 108, 125, 165, 207],
+                 [Infinity, 61, 114, 132, 174, 218]],
+
+                power_snatch:
+                [[97, 26, 48, 55, 73, 91],
+                 [105, 27, 51, 59, 79, 98],
+                 [114, 30, 55, 64, 84, 105],
+                 [123, 31, 58, 68, 90, 112],
+                 [132, 34, 62, 72, 94, 119],
+                 [148, 37, 68, 79, 104, 130],
+                 [165, 39, 73, 85, 112, 144],
+                 [181, 42, 78, 92, 121, 151],
+                 [198, 45, 84, 98, 129, 161],
+                 [Infinity, 48, 89, 103, 136, 170]],
+            },
+
             male: {
                 overhead_press:
                 [[114, 53, 72, 90, 107, 129],
@@ -342,7 +424,21 @@
                  [242, 99, 183, 224, 305, 357],
                  [275, 102, 188, 230, 313, 367],
                  [319, 104, 192, 235, 320, 376],
-                 [Infinity, 106, 196, 239, 327, 384]]
+                 [Infinity, 106, 196, 239, 327, 384]],
+
+                power_snatch:
+                [[114, 44, 80, 98, 135, 161],
+                 [123, 47, 87, 107, 145, 175],
+                 [132, 51, 94, 115, 156, 186],
+                 [148, 57, 105, 129, 176, 207],
+                 [165, 62, 115, 140, 192, 225],
+                 [181, 66, 123, 151, 206, 242],
+                 [198, 70, 130, 160, 218, 255],
+                 [220, 74, 137, 169, 229, 269],
+                 [242, 77, 143, 175, 238, 278],
+                 [275, 80, 147, 179, 244, 286],
+                 [319, 81, 150, 183, 250, 293],
+                 [Infinity, 83, 153, 186, 255, 300]]
             }
          };
 
@@ -389,7 +485,7 @@
                         .x(function(d) { return x(d.date); })
                         .y(function(d) { return y(d.onerm); });
 
-                    api.listWorkouts(0, -1, function(err, data) {
+                    api.listWorkouts(0, 50, function(err, data) {
                         if (err !== null) return;
 
                         d3.select(element[0]).selectAll("svg").remove();
@@ -558,7 +654,7 @@
 
     controller("StrStdCtrl", function ($rootScope, $scope, strStd, api) {
         $scope.bodyweight = 70;
-        $scope.gender = "male";
+        $scope.sex = "male";
 
         $scope.refresh = function () {
             api.last(function (err, data) {
@@ -573,7 +669,7 @@
                 $scope.last = data;
 
                 Object.keys(data).forEach(function (k) {
-                    var grades = strStd.calculateGrades($scope.gender, k, $scope.bodyweight);
+                    var grades = strStd.calculateGrades($scope.sex, k, $scope.bodyweight);
                     if (grades === null) return;
 
                     var v = data[k][0];

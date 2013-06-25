@@ -58,7 +58,7 @@ def list_workouts():
 @require_auth
 def list_lift_types():
     return flask.jsonify({
-        "lift_types": [t.to_api() for t in db.session.query(LiftType).all()]
+        "lift_types": [t.to_api() for t in db.session.query(LiftType).order_by(LiftType.name).all()]
     })
 
 

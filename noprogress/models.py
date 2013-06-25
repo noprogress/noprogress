@@ -88,7 +88,7 @@ class Workout(db.Model, IdMixin):
     def to_api(self):
         return {
             "id": self.id,
-            "date": self.date.strftime("%s"),
+            "date": int(self.date.strftime("%s")),
             "comment": self.comment,
             "lifts": [l.to_api() for l in self.lifts]
         }
@@ -109,7 +109,7 @@ class Workout(db.Model, IdMixin):
 class LiftType(db.Model, IdMixin):
     __tablename__ = "lift_types"
 
-    name = db.Column(db.String, nullable=False, index=True)
+    name = db.Column(db.String, nullable=False, unique=True)
 
     @classmethod
     def by_name(cls, name):
