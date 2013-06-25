@@ -352,7 +352,7 @@
                  [165, 39, 73, 85, 112, 144],
                  [181, 42, 78, 92, 121, 151],
                  [198, 45, 84, 98, 129, 161],
-                 [Infinity, 48, 89, 103, 136, 170]],
+                 [Infinity, 48, 89, 103, 136, 170]]
             },
 
             male: {
@@ -442,12 +442,22 @@
             }
          };
 
+        function onerm(sets) {
+            sets = sets.slice();
+            sets.sort(function (x, y) {
+                return y.weight - x.weight;
+            });
+
+            return wathan(sets[0].weight, sets[0].reps);
+        }
+
         return {
             wathan: wathan,
             tables: tables,
             calculateGrades: calculateGrades,
             kgToLb: kgToLb,
-            lbToKg: lbToKg
+            lbToKg: lbToKg,
+            onerm: onerm
         };
     }).
 
@@ -455,10 +465,6 @@
         var margin = {top: 20, right: 100, bottom: 30, left: 60},
             width = 960 - margin.left - margin.right,
             height = 250 - margin.top - margin.bottom;
-
-        function onermCalc(sets) {
-            return strStd.wathan(sets[0].weight, sets[0].reps);
-        }
 
         return {
             restrict: "E",
@@ -516,7 +522,7 @@
                                     if (Object.prototype.hasOwnProperty.call(d.liftSetsMap, name)) {
                                         acc.push({
                                             date: d.date,
-                                            onerm: onermCalc(d.liftSetsMap[name])
+                                            onerm: strStd.onerm(d.liftSetsMap[name])
                                         });
                                     }
                                     return acc;
@@ -672,9 +678,8 @@
                     var grades = strStd.calculateGrades($scope.sex, k, $scope.bodyweight);
                     if (grades === null) return;
 
-                    var v = data[k][0];
                     $scope.liftNames.push(k);
-                    $scope.onerms[k] = strStd.wathan(v.weight, v.reps);
+                    $scope.onerms[k] = strStd.onerm(data[k]);
                     $scope.roundedOnerms[k] = Math.round($scope.onerms[k]);
                     $scope.grades[k] = grades;
                     $scope.percents[k] = {};
