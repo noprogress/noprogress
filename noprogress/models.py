@@ -88,7 +88,7 @@ class Workout(db.Model, IdMixin):
     def to_api(self):
         return {
             "id": self.id,
-            "date": self.date.strftime("%s"),
+            "date": int(self.date.strftime("%s")),
             "comment": self.comment,
             "lifts": [l.to_api() for l in self.lifts]
         }
