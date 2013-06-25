@@ -443,12 +443,9 @@
          };
 
         function onerm(sets) {
-            sets = sets.slice();
-            sets.sort(function (x, y) {
-                return y.weight - x.weight;
-            });
-
-            return wathan(sets[0].weight, sets[0].reps);
+            return Math.max.apply(Math, sets.map(function (set) {
+                return wathan(set.weight, set.reps);
+            }));
         }
 
         return {
