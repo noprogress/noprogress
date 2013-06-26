@@ -20,7 +20,7 @@ comment
 
 date
     = date:([0-9][0-9][0-9][0-9] "-" [0-9][0-9] "-" [0-9][0-9]) {
-        return (new Date(date.join(""))).valueOf() / 1000;
+        return date.join("");
     }
 
 

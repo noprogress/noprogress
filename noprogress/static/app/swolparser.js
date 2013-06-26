@@ -487,7 +487,7 @@ window.swolparser = (function(){
         }
         if (result0 !== null) {
           result0 = (function(offset, line, column, date) {
-                return (new Date(date.join(""))).valueOf() / 1000;
+                return date.join("");
             })(pos0.offset, pos0.line, pos0.column, result0);
         }
         if (result0 === null) {

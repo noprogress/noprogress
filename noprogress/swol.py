@@ -46,7 +46,7 @@ def parse_workout(line):
         lifts.append(parse_lift(raw_lift))
 
     return {
-        "date": date.strftime("%s"),
+        "date": date,
         "comment": comment,
         "lifts": lifts
     }
@@ -59,7 +59,7 @@ def dump_lift(lift):
 
 def dump_workout(workout):
     comment = workout["comment"]
-    workout = "{}|{}".format(datetime.datetime.fromtimestamp(workout["date"], tz=pytz.UTC).strftime("%Y-%m-%d"),
+    workout = "{}|{}".format(workout["date"],
                              ",".join(dump_lift(lift) for lift in workout["lifts"]))
     if comment is not None:
         workout += "#" + comment

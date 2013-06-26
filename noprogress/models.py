@@ -88,14 +88,14 @@ class Workout(db.Model, IdMixin):
     def to_api(self):
         return {
             "id": self.id,
-            "date": int(self.date.strftime("%s")),
+            "date": self.date.strftime("%Y-%m-%d"),
             "comment": self.comment,
             "lifts": [l.to_api() for l in self.lifts]
         }
 
     @classmethod
     def from_api(cls, payload):
-        w = cls(date=datetime.datetime.fromtimestamp(payload["date"], tz=pytz.utc).date(),
+        w = cls(date=datetime.datetime.strptime(payload["date"], "%Y-%m-%d").date(),
                 comment=payload.get("comment", None))
 
         for i, lift in enumerate(payload["lifts"]):

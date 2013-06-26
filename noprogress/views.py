@@ -42,7 +42,7 @@ def list_workouts():
     workouts = [x.to_api() for x in q]
 
     if format == "swol":
-        return flask.Response("\n".join(swol.dump_workout(l) for l in workouts),
+        return flask.Response("\n".join(swol.dump_workout(l) for l in workouts) + "\n",
                               mimetype="text/plain",
                               headers={
             "Content-Disposition": "attachment;filename=\"workouts-{}.swol\"".format(datetime.date.today().strftime("%Y-%m-%d"))

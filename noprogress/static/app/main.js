@@ -31,14 +31,6 @@
                         ctrl.$setViewValue($(element).val());
                     });
                 });
-
-                ctrl.$parsers.push(function (value) {
-                    return new Date(value) / 1000;
-                });
-
-                ctrl.$formatters.push(function (value) {
-                    return $filter("date")(new Date(value * 1000), "yyyy-MM-dd");
-                });
             }
         };
     }).
@@ -223,7 +215,6 @@
                         var workouts = data.workouts;
 
                         workouts.forEach(function (workout) {
-                            workout.date = new Date(workout.date * 1000);
                             workout.liftSetsMap = {};
                             workout.lifts.forEach(function (lift) {
                                 workout.liftSetsMap[lift.type] = lift.sets;
@@ -506,7 +497,11 @@
 
                         var workouts = data.workouts;
 
-                        var lifts = data.workouts.reduce(function (acc, x) {
+                        workouts.forEach(function (d) {
+                            d.date = new Date(d.date);
+                        });
+
+                        var lifts = workouts.reduce(function (acc, x) {
                             return _.union(acc, Object.keys(x.liftSetsMap));
                         }, []).sort();
 
@@ -732,11 +727,8 @@
         });
 
         $scope.reset = function () {
-            var today = new Date();
-            var ts = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-
             $scope.workout = {
-                date: ts / 1000,
+                date: $filter("date")(new Date(), "yyyy-MM-dd"),
                 lifts: []
             };
 
