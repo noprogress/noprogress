@@ -732,8 +732,11 @@
         });
 
         $scope.reset = function () {
+            var today = new Date();
+            var ts = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
             $scope.workout = {
-                date: (new Date()).valueOf() / 1000,
+                date: ts / 1000,
                 lifts: []
             };
 
