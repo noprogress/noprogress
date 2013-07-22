@@ -31,7 +31,7 @@ if not app.debug:
     app.logger.addHandler(mail_handler)
 
 scanner = venusian.Scanner()
-scanner.scan(noprogress)
+scanner.scan(noprogress, ignore=[".tests"])
 
 
 def main():
