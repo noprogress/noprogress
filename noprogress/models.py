@@ -125,7 +125,7 @@ class LiftType(db.Model, IdMixin):
     def from_api(cls, payload):
         lift_type = cls.by_name(payload.replace(" ", "_").lower())
         if lift_type is None:
-            raise ValueError("unacceptable lift")
+            raise ValueError("unacceptable lift: " + lift_type)
         return lift_type
 
 

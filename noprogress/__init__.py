@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, session
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.assets import Environment, Bundle
 
@@ -24,9 +24,21 @@ assets.register("css_all", Bundle("css/normalize.css", "css/general_foundicons.c
 if not app.debug:
     import logging
     from logging.handlers import SMTPHandler
-    mail_handler = SMTPHandler("127.0.0.1",
-                               "error@noprogress-rfw.rhcloud.com",
-                               app.config["ADMINS"], "noprogress error")
+    import pprint
+
+    class MySMTPHandler(SMTPHandler):
+        def format(self, record):
+            return """\
+Flask session data:
+{session}
+
+{msg}
+""".format(session=pprint.pformat(dict(session)),
+           msg=super(MySMTPHandler, self).format(record))
+
+    mail_handler = MySMTPHandler("127.0.0.1",
+                                 "error@noprogress-rfw.rhcloud.com",
+                                 app.config["ADMINS"], "noprogress error")
     mail_handler.setLevel(logging.ERROR)
     app.logger.addHandler(mail_handler)
 
