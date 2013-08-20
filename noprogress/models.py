@@ -57,6 +57,15 @@ class User(db.Model, IdMixin):
             .order_by(desc(Workout.date)) \
             .distinct(LiftType.name)
 
+    def find_last_bodyweight(self):
+        w = db.session.query(Workout) \
+            .filter(Workout.user_id == self.id) \
+            .filter(Workout.bodyweight != None) \
+            .order_by(desc(Workout.date)) \
+            .first()
+        if w is None:
+            return None
+        return w.bodyweight
 
 @app.before_request
 def add_request_identity():
@@ -76,6 +85,7 @@ class Workout(db.Model, IdMixin):
     __tablename__ = "workouts"
 
     date = db.Column(db.Date, nullable=False)
+    bodyweight = db.Column(db.Float, nullable=True)
     comment = db.Column(db.Text, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"),
                         nullable=False)
@@ -89,6 +99,7 @@ class Workout(db.Model, IdMixin):
         return {
             "id": self.id,
             "date": self.date.strftime("%Y-%m-%d"),
+            "bodyweight": self.bodyweight,
             "comment": self.comment,
             "lifts": [l.to_api() for l in self.lifts]
         }
@@ -96,6 +107,7 @@ class Workout(db.Model, IdMixin):
     @classmethod
     def from_api(cls, payload):
         w = cls(date=datetime.datetime.strptime(payload["date"], "%Y-%m-%d").date(),
+                bodyweight=payload.get("bodyweight", None),
                 comment=payload.get("comment", None))
 
         for i, lift in enumerate(payload["lifts"]):

@@ -651,11 +651,12 @@
     }).
 
     controller("StrStdCtrl", function ($rootScope, $scope, strStd, api) {
-        $scope.bodyweight = 70;
-        $scope.sex = "male";
+        var sex = "male";
 
         $scope.refresh = function () {
             api.last(function (err, data) {
+                var lifts = data.lifts;
+
                 $scope.liftNames = [];
                 $scope.grades = {};
                 $scope.onerms = {};
@@ -666,12 +667,12 @@
 
                 $scope.last = data;
 
-                Object.keys(data).forEach(function (k) {
-                    var grades = strStd.calculateGrades($scope.sex, k, $scope.bodyweight);
+                Object.keys(lifts).forEach(function (k) {
+                    var grades = strStd.calculateGrades(sex, k, data.bodyweight);
                     if (grades === null) return;
 
                     $scope.liftNames.push(k);
-                    $scope.onerms[k] = strStd.onerm(data[k]);
+                    $scope.onerms[k] = strStd.onerm(lifts[k]);
                     $scope.roundedOnerms[k] = Math.round($scope.onerms[k]);
                     $scope.grades[k] = grades;
                     $scope.percents[k] = {};
@@ -729,6 +730,7 @@
         $scope.reset = function () {
             $scope.workout = {
                 date: $filter("date")(new Date(), "yyyy-MM-dd"),
+                bodyweight: null,
                 lifts: []
             };
 

@@ -67,7 +67,10 @@ def list_lift_types():
 def list_last():
     user = g.identity
 
-    return flask.jsonify({l.lift_type.name: l.to_api()["sets"] for l in user.find_last()})
+    return flask.jsonify({
+        "bodyweight": user.find_last_bodyweight(),
+        "lifts": {l.lift_type.name: l.to_api()["sets"] for l in user.find_last()}
+    })
 
 
 @app.route("/api/multi", methods=["POST"])
