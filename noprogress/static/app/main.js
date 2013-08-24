@@ -501,13 +501,32 @@
                             d.date = new Date(d.date);
                         });
 
-                        var lifts = workouts.reduce(function (acc, x) {
+                        var lifts = ["* Bodyweight"];
+
+                        lifts.push.apply(lifts, workouts.reduce(function (acc, x) {
                             return _.union(acc, Object.keys(x.liftSetsMap));
-                        }, []).sort();
+                        }, []).sort());
 
                         color.domain(lifts);
 
-                        var onerms = color.domain().map(function (name) {
+                        var onerms = [];
+
+                        onerms.push.apply(onerms, color.domain().map(function (name) {
+                            if (name === "* Bodyweight") {
+                                return {
+                                    name: "* Bodyweight",
+                                    values: workouts.reduce(function (acc, d) {
+                                        if (d.bodyweight !== null) {
+                                            acc.push({
+                                                date: d.date,
+                                                onerm: d.bodyweight
+                                            });
+                                        }
+                                        return acc;
+                                    }, [])
+                                }
+                            }
+
                             return {
                                 name: name,
                                 values: workouts.reduce(function (acc, d) {
@@ -520,7 +539,9 @@
                                     return acc;
                                 }, [])
                             };
-                        });
+                        }));
+
+                        console.log(lifts, onerms);
 
                         x.domain(d3.extent(workouts, function(d) { return d.date; }));
                         y.domain([
