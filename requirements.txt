@@ -6,5 +6,5 @@ psycopg2
 requests
 python-dateutil
 Flask-Assets
-pytz
+pytz==2013b
 alembic
