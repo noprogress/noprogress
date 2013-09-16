@@ -9,8 +9,8 @@ workouts
     }
 
 workout
-    = date:date "|" lifts:lifts comment:("#" comment)? {
-        return { date: date, lifts: lifts, comment: comment[0] == "#" ? comment[1] : null };
+    = date:date bodyweight:("@" weight)? "|" lifts:lifts comment:("#" comment)? {
+        return { date: date, bodyweight: bodyweight[0] == "@" ? bodyweight[1] : null, lifts: lifts, comment: comment[0] == "#" ? comment[1] : null };
     }
 
 comment

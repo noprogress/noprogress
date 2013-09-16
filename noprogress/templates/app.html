@@ -53,7 +53,7 @@
                         <form class="panel" ng-controller="MultiLogCtrl" name="multiLogForm" ng-submit="doMultiLog(multiLogForm)" novalidate ng-show="powerUser">
                             <div class="row">
                                 <div class="large-12 columns">
-                                    <textarea ng-model="logs" placeholder="Example: 2013-06-15|Squat@120.0x5+120.0x5+120.0x5,Overhead Press@40.0x5+40.0x5+40.0x5,Power Clean@50.0x3+50.0x3+50.0x3+50.0x3+50.0x3" required swol name="logs" ng-class="{error: multiLogForm.logs.$error.syntax}"></textarea>
+                                    <textarea ng-model="logs" placeholder="Example: 2013-06-15@65|Squat@120.0x5+120.0x5+120.0x5,Overhead Press@40.0x5+40.0x5+40.0x5,Power Clean@50.0x3+50.0x3+50.0x3+50.0x3+50.0x3" required swol name="logs" ng-class="{error: multiLogForm.logs.$error.syntax}"></textarea>
                                     <small class="error" ng-show="multiLogForm.logs.$error.syntax">Syntax error</small>
                                 </div>
                             </div>
